@@ -47,7 +47,7 @@ class NewsSummarizer:
     def __init__(self, api_key: str):
         """Initialize the news summarizer with Groq API key"""
         self.client = Groq(api_key=api_key)
-        self.model = "llama-3.1-70b-versatile"
+        self.model = "llama-3.3-70b-versatile"
         
     def fetch_feed(self, url: str, max_entries: int = 10) -> List[Dict]:
         """Fetch and parse an RSS feed"""
