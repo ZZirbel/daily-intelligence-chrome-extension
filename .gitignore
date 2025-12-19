@@ -1,0 +1,84 @@
+# ============================================
+# SENSITIVE FILES - NEVER COMMIT THESE!
+# ============================================
+
+# Environment variables (API keys, secrets)
+.env
+.env.local
+.env.*.local
+*.env
+.envrc
+
+# Credentials and secrets
+credentials.json
+secrets.json
+*.pem
+*.key
+*.p12
+*.pfx
+token.json
+auth.json
+config.local.json
+
+# ============================================
+# OBSIDIAN
+# ============================================
+.obsidian/
+
+# ============================================
+# GENERATED FILES
+# ============================================
+summary.json
+
+# ============================================
+# PYTHON
+# ============================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+venv/
+.venv/
+ENV/
+env/
+
+# Logs
+*.log
+news.log
+news.error.log
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.temp

@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "AI Daily Dashboard",
+  "version": "1.0.0",
+  "description": "Your personal intelligence hub for leadership development, continuous learning, and staying informed.",
+  "author": "Zan Zirbel",
+
+  "chrome_url_overrides": {
+    "newtab": "ai-daily-dashboard-complete.html"
+  },
+
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+
+  "permissions": [],
+
+  "web_accessible_resources": [
+    {
+      "resources": ["summary.json"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
