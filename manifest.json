@@ -6,7 +6,7 @@
   "author": "Zan Zirbel",
 
   "chrome_url_overrides": {
-    "newtab": "ai-daily-dashboard-complete.html"
+    "newtab": "chrome-daily-dashboard.html"
   },
 
   "icons": {

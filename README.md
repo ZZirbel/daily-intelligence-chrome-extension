@@ -46,15 +46,15 @@ Your personal intelligence hub for leadership development, continuous learning, 
 - Internet connection (for initial setup and news fetching)
 
 ### Step 1: Download Files
-Save these files to a permanent location (e.g., `~/Documents/ai-dashboard/`):
-- `ai-daily-dashboard.html`
+Save these files to a permanent location (e.g., `~/Documents/chrome-daily-dashboard/`):
+- `chrome-daily-dashboard.html`
 - `news-summarizer.py`
 - `requirements.txt`
 - `.env.example`
 
 ### Step 2: Install Python Dependencies
 ```bash
-cd ~/Documents/ai-dashboard/
+cd ~/Documents/chrome-daily-dashboard/
 pip install -r requirements.txt
 ```
 
@@ -93,7 +93,7 @@ Results saved to summary.json
 2. Go to "On startup"
 3. Select "Open a specific page or set of pages"
 4. Click "Add a new page"
-5. Enter the file path: `file:///Users/YOUR_USERNAME/Documents/ai-dashboard/ai-daily-dashboard.html`
+5. Enter the file path: `file:///Users/YOUR_USERNAME/Documents/chrome-daily-dashboard/chrome-daily-dashboard.html`
 
 ### Step 7: Automate Daily News Updates
 
@@ -111,11 +111,11 @@ Create `~/Library/LaunchAgents/com.aidashboard.news.plist`:
     <key>ProgramArguments</key>
     <array>
         <string>/usr/bin/python3</string>
-        <string>/Users/YOUR_USERNAME/Documents/ai-dashboard/news-summarizer.py</string>
+        <string>/Users/YOUR_USERNAME/Documents/chrome-daily-dashboard/news-summarizer.py</string>
     </array>
     
     <key>WorkingDirectory</key>
-    <string>/Users/YOUR_USERNAME/Documents/ai-dashboard</string>
+    <string>/Users/YOUR_USERNAME/Documents/chrome-daily-dashboard</string>
     
     <key>StartCalendarInterval</key>
     <dict>
@@ -126,10 +126,10 @@ Create `~/Library/LaunchAgents/com.aidashboard.news.plist`:
     </dict>
     
     <key>StandardOutPath</key>
-    <string>/Users/YOUR_USERNAME/Documents/ai-dashboard/news.log</string>
+    <string>/Users/YOUR_USERNAME/Documents/chrome-daily-dashboard/news.log</string>
     
     <key>StandardErrorPath</key>
-    <string>/Users/YOUR_USERNAME/Documents/ai-dashboard/news.error.log</string>
+    <string>/Users/YOUR_USERNAME/Documents/chrome-daily-dashboard/news.error.log</string>
 </dict>
 </plist>
 ```
@@ -146,8 +146,8 @@ launchctl load ~/Library/LaunchAgents/com.aidashboard.news.plist
 4. Trigger: Daily at 6:00 AM
 5. Action: Start a program
    - Program: `python`
-   - Arguments: `C:\Users\YOUR_USERNAME\Documents\ai-dashboard\news-summarizer.py`
-   - Start in: `C:\Users\YOUR_USERNAME\Documents\ai-dashboard\`
+   - Arguments: `C:\Users\YOUR_USERNAME\Documents\chrome-daily-dashboard\news-summarizer.py`
+   - Start in: `C:\Users\YOUR_USERNAME\Documents\chrome-daily-dashboard\`
 6. Finish and test the task
 
 #### On Linux (using cron)
@@ -156,7 +156,7 @@ launchctl load ~/Library/LaunchAgents/com.aidashboard.news.plist
 crontab -e
 
 # Add this line (runs daily at 6:00 AM)
-0 6 * * * cd ~/Documents/ai-dashboard && /usr/bin/python3 news-summarizer.py >> news.log 2>&1
+0 6 * * * cd ~/Documents/chrome-daily-dashboard && /usr/bin/python3 news-summarizer.py >> news.log 2>&1
 ```
 
 ## ⌨️ Keyboard Shortcuts
@@ -177,7 +177,7 @@ Edit `dashboard-data.js` to modify:
 
 ### Adjusting Theme Colors
 
-Edit CSS variables in `ai-daily-dashboard.html`:
+Edit CSS variables in `chrome-daily-dashboard.html`:
 ```css
 :root {
     --accent-teal: #14b8a6;    /* Primary accent */
@@ -205,7 +205,7 @@ FEED_SOURCES = {
 
 **Solution**:
 ```bash
-cd ~/Documents/ai-dashboard/
+cd ~/Documents/chrome-daily-dashboard/
 python news-summarizer.py
 ```
 
@@ -232,7 +232,7 @@ pip install --upgrade -r requirements.txt
 
 **Solution**:
 1. Verify file path is correct: Right-click HTML file → "Get Info" (Mac) or "Properties" (Windows)
-2. Check file permissions: `chmod 644 ai-daily-dashboard.html`
+2. Check file permissions: `chmod 644 chrome-daily-dashboard.html`
 3. Try opening directly: Drag HTML file into Chrome window
 
 ### localStorage data lost
@@ -250,7 +250,7 @@ launchctl list | grep com.aidashboard.news
 # Should show the service
 
 # Check logs
-tail -f ~/Documents/ai-dashboard/news.log
+tail -f ~/Documents/chrome-daily-dashboard/news.log
 ```
 
 **Windows**: Check Task Scheduler history

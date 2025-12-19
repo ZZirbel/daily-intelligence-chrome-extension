@@ -131,7 +131,7 @@ You should NOT see:
 3. Link and push:
 
 ```bash
-git remote add origin https://github.com/YOUR_USERNAME/ai-daily-dashboard.git
+git remote add origin https://github.com/YOUR_USERNAME/chrome-daily-dashboard.git
 git branch -M main
 git push -u origin main
 ```
@@ -139,8 +139,8 @@ git push -u origin main
 ### Repository Structure
 
 ```
-ai-daily-dashboard/
-├── ai-daily-dashboard-complete.html  # Main dashboard
+chrome-daily-dashboard/
+├── chrome-daily-dashboard.html       # Main dashboard
 ├── news-summarizer.py                # Python summarizer script
 ├── generate-icons.py                 # Icon generator for Chrome extension
 ├── requirements.txt                  # Python dependencies
@@ -180,7 +180,7 @@ This creates `icons/icon16.png`, `icons/icon48.png`, and `icons/icon128.png`.
 1. Open Chrome and go to: `chrome://extensions/`
 2. Enable **"Developer mode"** (toggle in top right)
 3. Click **"Load unpacked"**
-4. Navigate to and select your `ai-daily-dashboard` folder
+4. Navigate to and select your `chrome-daily-dashboard` folder
 5. The extension should appear in your extensions list
 
 ### Step 3.4: Test the Extension
