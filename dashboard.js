@@ -83,26 +83,116 @@ function init() {
     loadDailyReflection();
     loadNews();
     updateReflectionTrigger();
+    setupEventListeners();
+}
 
+// Setup all event listeners (no inline handlers)
+function setupEventListeners() {
     // Close reflection modal on Escape key
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             closeReflectionModal();
+            closeInstructionsModal();
         }
     });
 
-    // Close reflection modal on backdrop click
-    document.getElementById('reflectionModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeReflectionModal();
+    // Reflection modal backdrop click
+    var reflectionModal = document.getElementById('reflectionModal');
+    if (reflectionModal) {
+        reflectionModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeReflectionModal();
+            }
+        });
+    }
+
+    // Reflection trigger button
+    var reflectionTrigger = document.getElementById('reflectionTrigger');
+    if (reflectionTrigger) {
+        reflectionTrigger.addEventListener('click', openReflectionModal);
+    }
+
+    // Reflection modal close button
+    var reflectionClose = document.getElementById('reflectionModalClose');
+    if (reflectionClose) {
+        reflectionClose.addEventListener('click', closeReflectionModal);
+    }
+
+    // Next insight button
+    var nextInsightBtn = document.getElementById('nextInsightBtn');
+    if (nextInsightBtn) {
+        nextInsightBtn.addEventListener('click', refreshInsight);
+    }
+
+    // Event delegation for dynamically created elements
+    document.addEventListener('click', function(e) {
+        var target = e.target;
+
+        // Quiz button
+        if (target.classList.contains('show-quiz-btn')) {
+            var learningId = parseInt(target.getAttribute('data-learning-id'), 10);
+            showQuiz(learningId);
+            return;
+        }
+
+        // Quiz option
+        if (target.classList.contains('quiz-option')) {
+            var quizId = parseInt(target.getAttribute('data-quiz-id'), 10);
+            var optionIdx = parseInt(target.getAttribute('data-option-idx'), 10);
+            checkAnswer(quizId, optionIdx);
+            return;
+        }
+
+        // News header (article toggle)
+        var newsHeader = target.closest('.news-header');
+        if (newsHeader) {
+            var articleId = newsHeader.getAttribute('data-article-id');
+            if (articleId) {
+                toggleArticle(articleId);
+            }
+            return;
+        }
+
+        // More articles toggle
+        if (target.classList.contains('more-articles-toggle') || target.closest('.more-articles-toggle')) {
+            var toggleBtn = target.classList.contains('more-articles-toggle') ? target : target.closest('.more-articles-toggle');
+            var categoryKey = toggleBtn.getAttribute('data-category');
+            if (categoryKey) {
+                toggleMoreArticles(categoryKey);
+            }
+            return;
+        }
+
+        // Show regenerate instructions button
+        if (target.classList.contains('show-instructions-btn')) {
+            showRegenerateInstructions();
+            return;
+        }
+
+        // Instructions modal close/backdrop
+        if (target.id === 'instructions-modal' || target.classList.contains('instructions-modal-close')) {
+            closeInstructionsModal();
+            return;
+        }
+
+        // Save reflection button
+        if (target.classList.contains('save-reflection-btn')) {
+            saveReflection();
+            return;
+        }
+
+        // Export reflections button
+        if (target.classList.contains('export-reflections-btn')) {
+            exportReflections();
+            return;
         }
     });
 }
 
 function loadState() {
-    const saved = localStorage.getItem('dashboard_state');
+    var saved = localStorage.getItem('dashboard_state');
     if (saved) {
-        const parsed = JSON.parse(saved);
+        var parsed = JSON.parse(saved);
         Object.assign(state, parsed);
     }
 }
@@ -112,35 +202,38 @@ function saveState() {
 }
 
 function displayCurrentDate() {
-    const now = new Date();
+    var now = new Date();
     document.getElementById('currentDate').textContent =
         now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 }
 
 // Daily Insight
 function loadDailyInsight() {
-    const available = INSIGHTS.filter(i => !state.seenInsights.includes(i.id));
+    var available = INSIGHTS.filter(function(i) { return state.seenInsights.indexOf(i.id) === -1; });
     if (available.length === 0) {
         state.seenInsights = [];
         loadDailyInsight();
         return;
     }
 
-    const insight = available[Math.floor(Math.random() * available.length)];
+    var insight = available[Math.floor(Math.random() * available.length)];
     state.currentInsight = insight;
     state.seenInsights.push(insight.id);
     saveState();
 
-    document.getElementById('insightDisplay').innerHTML = `
-        <span class="insight-category">${insight.category}</span>
-        <p style="font-size: 1.15rem; line-height: 1.8; margin: 1rem 0; color: var(--text-secondary);">
-            ${insight.insight}
-        </p>
-        <div style="margin-top: 1.5rem;">
-            <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-tertiary); margin-bottom: 0.75rem;">SOURCES</div>
-            ${insight.sources.map(s => `<a href="${s.url}" class="source-link" target="_blank">${s.title}</a>`).join('')}
-        </div>
-    `;
+    var sourcesHtml = insight.sources.map(function(s) {
+        return '<a href="' + s.url + '" class="source-link" target="_blank">' + s.title + '</a>';
+    }).join('');
+
+    document.getElementById('insightDisplay').innerHTML =
+        '<span class="insight-category">' + insight.category + '</span>' +
+        '<p style="font-size: 1.15rem; line-height: 1.8; margin: 1rem 0; color: var(--text-secondary);">' +
+            insight.insight +
+        '</p>' +
+        '<div style="margin-top: 1.5rem;">' +
+            '<div style="font-size: 0.85rem; font-weight: 600; color: var(--text-tertiary); margin-bottom: 0.75rem;">SOURCES</div>' +
+            sourcesHtml +
+        '</div>';
 }
 
 function refreshInsight() {
@@ -149,70 +242,64 @@ function refreshInsight() {
 
 // Microlearning
 function loadMicrolearning() {
-    const available = MICROLEARNINGS.filter(m => !state.seenMicrolearnings.includes(m.id));
+    var available = MICROLEARNINGS.filter(function(m) { return state.seenMicrolearnings.indexOf(m.id) === -1; });
     if (available.length === 0) {
         state.seenMicrolearnings = [];
         loadMicrolearning();
         return;
     }
 
-    const learning = available[Math.floor(Math.random() * available.length)];
+    var learning = available[Math.floor(Math.random() * available.length)];
     state.currentMicrolearning = learning;
     state.seenMicrolearnings.push(learning.id);
     saveState();
 
-    const progress = state.quizProgress[learning.id] || { correct: 0, mastery: 'new' };
-    const masteredCount = Object.values(state.quizProgress).filter(p => p.mastery === 'mastered').length;
+    var progress = state.quizProgress[learning.id] || { correct: 0, mastery: 'new' };
+    var masteredCount = Object.values(state.quizProgress).filter(function(p) { return p.mastery === 'mastered'; }).length;
 
-    document.getElementById('microlearningDisplay').innerHTML = `
-        <div class="progress-bar">
-            <div class="progress-fill" style="width: ${(masteredCount / MICROLEARNINGS.length) * 100}%"></div>
-        </div>
-        <p style="font-size: 0.85rem; text-align: center; color: var(--text-tertiary); margin-bottom: 1.5rem;">
-            ${masteredCount} of ${MICROLEARNINGS.length} mastered
-        </p>
+    var sourcesHtml = learning.sources.map(function(s) {
+        return '<a href="' + s.url + '" class="source-link" target="_blank">' + s.title + '</a>';
+    }).join('');
 
-        <span class="insight-category">${learning.category}</span>
-        <h3 style="font-size: 1.25rem; margin: 1rem 0;">${learning.topic}</h3>
-        <p style="line-height: 1.7; color: var(--text-secondary); margin-bottom: 1rem;">
-            ${learning.content}
-        </p>
-
-        <div style="margin: 1rem 0;">
-            ${learning.sources.map(s => `<a href="${s.url}" class="source-link" target="_blank">${s.title}</a>`).join('')}
-        </div>
-
-        <button class="btn" onclick="showQuiz(${learning.id})">Test Your Knowledge</button>
-
-        <div id="quiz-${learning.id}" class="quiz-container"></div>
-    `;
+    document.getElementById('microlearningDisplay').innerHTML =
+        '<div class="progress-bar">' +
+            '<div class="progress-fill" style="width: ' + ((masteredCount / MICROLEARNINGS.length) * 100) + '%"></div>' +
+        '</div>' +
+        '<p style="font-size: 0.85rem; text-align: center; color: var(--text-tertiary); margin-bottom: 1.5rem;">' +
+            masteredCount + ' of ' + MICROLEARNINGS.length + ' mastered' +
+        '</p>' +
+        '<span class="insight-category">' + learning.category + '</span>' +
+        '<h3 style="font-size: 1.25rem; margin: 1rem 0;">' + learning.topic + '</h3>' +
+        '<p style="line-height: 1.7; color: var(--text-secondary); margin-bottom: 1rem;">' +
+            learning.content +
+        '</p>' +
+        '<div style="margin: 1rem 0;">' + sourcesHtml + '</div>' +
+        '<button class="btn show-quiz-btn" data-learning-id="' + learning.id + '">Test Your Knowledge</button>' +
+        '<div id="quiz-' + learning.id + '" class="quiz-container"></div>';
 }
 
 function showQuiz(id) {
-    const learning = MICROLEARNINGS.find(m => m.id === id);
-    const container = document.getElementById(`quiz-${id}`);
+    var learning = MICROLEARNINGS.find(function(m) { return m.id === id; });
+    var container = document.getElementById('quiz-' + id);
 
-    container.innerHTML = `
-        <div style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1.5rem;">${learning.quiz.question}</div>
-        <div id="options-${id}">
-            ${learning.quiz.options.map((opt, idx) => `
-                <div class="quiz-option" onclick="checkAnswer(${id}, ${idx})">
-                    ${opt}
-                </div>
-            `).join('')}
-        </div>
-        <div id="feedback-${id}"></div>
-    `;
+    var optionsHtml = learning.quiz.options.map(function(opt, idx) {
+        return '<div class="quiz-option" data-quiz-id="' + id + '" data-option-idx="' + idx + '">' + opt + '</div>';
+    }).join('');
+
+    container.innerHTML =
+        '<div style="font-size: 1.1rem; font-weight: 600; margin-bottom: 1.5rem;">' + learning.quiz.question + '</div>' +
+        '<div id="options-' + id + '">' + optionsHtml + '</div>' +
+        '<div id="feedback-' + id + '"></div>';
 
     container.style.display = 'block';
 }
 
 function checkAnswer(id, selected) {
-    const learning = MICROLEARNINGS.find(m => m.id === id);
-    const isCorrect = selected === learning.quiz.correct;
+    var learning = MICROLEARNINGS.find(function(m) { return m.id === id; });
+    var isCorrect = selected === learning.quiz.correct;
 
-    const options = document.querySelectorAll(`#options-${id} .quiz-option`);
-    options.forEach((opt, idx) => {
+    var options = document.querySelectorAll('#options-' + id + ' .quiz-option');
+    options.forEach(function(opt, idx) {
         opt.style.pointerEvents = 'none';
         if (idx === learning.quiz.correct) opt.classList.add('correct');
         if (idx === selected && !isCorrect) opt.classList.add('incorrect');
@@ -231,16 +318,18 @@ function checkAnswer(id, selected) {
     }
     saveState();
 
-    document.getElementById(`feedback-${id}`).innerHTML = isCorrect
-        ? `<div style="margin-top: 1.5rem; padding: 1rem; background: rgba(16, 185, 129, 0.1); border: 1px solid var(--success); border-radius: 8px;">
-               <strong>Correct!</strong> ${learning.quiz.explanation}
-           </div>`
-        : `<div style="margin-top: 1.5rem; padding: 1rem; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--error); border-radius: 8px;">
-               <strong>Incorrect.</strong> ${learning.quiz.explanation}
-               <div style="margin-top: 1rem;">
-                   <a href="${learning.quiz.brushUpLink.url}" class="btn" target="_blank">Brush Up</a>
-               </div>
-           </div>`;
+    var feedbackHtml = isCorrect
+        ? '<div style="margin-top: 1.5rem; padding: 1rem; background: rgba(16, 185, 129, 0.1); border: 1px solid var(--success); border-radius: 8px;">' +
+              '<strong>Correct!</strong> ' + learning.quiz.explanation +
+          '</div>'
+        : '<div style="margin-top: 1.5rem; padding: 1rem; background: rgba(239, 68, 68, 0.1); border: 1px solid var(--error); border-radius: 8px;">' +
+              '<strong>Incorrect.</strong> ' + learning.quiz.explanation +
+              '<div style="margin-top: 1rem;">' +
+                  '<a href="' + learning.quiz.brushUpLink.url + '" class="btn" target="_blank">Brush Up</a>' +
+              '</div>' +
+          '</div>';
+
+    document.getElementById('feedback-' + id).innerHTML = feedbackHtml;
 }
 
 // ============================================
@@ -248,7 +337,7 @@ function checkAnswer(id, selected) {
 // ============================================
 
 // Sample fallback data when summary.json is not available
-const FALLBACK_NEWS = {
+var FALLBACK_NEWS = {
     ai_news: [
         { title: "Claude 4 Achieves New Benchmarks", source: "TechCrunch", link: "#", description: "Anthropic's latest model shows significant improvements in reasoning and coding benchmarks, marking a new milestone in AI development." },
         { title: "DeepMind's AlphaProof Breakthrough", source: "MIT Tech Review", link: "#", description: "Google DeepMind announces mathematical proof-finding capabilities that could revolutionize formal verification." },
@@ -271,16 +360,16 @@ function timeAgo(dateString) {
     if (!dateString) return '';
 
     try {
-        const date = new Date(dateString);
-        const now = new Date();
-        const diffMs = now - date;
-        const diffMins = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMs / 3600000);
-        const diffDays = Math.floor(diffMs / 86400000);
+        var date = new Date(dateString);
+        var now = new Date();
+        var diffMs = now - date;
+        var diffMins = Math.floor(diffMs / 60000);
+        var diffHours = Math.floor(diffMs / 3600000);
+        var diffDays = Math.floor(diffMs / 86400000);
 
-        if (diffMins < 60) return `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
-        if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
-        if (diffDays < 7) return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
+        if (diffMins < 60) return diffMins + ' minute' + (diffMins !== 1 ? 's' : '') + ' ago';
+        if (diffHours < 24) return diffHours + ' hour' + (diffHours !== 1 ? 's' : '') + ' ago';
+        if (diffDays < 7) return diffDays + ' day' + (diffDays !== 1 ? 's' : '') + ' ago';
 
         return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     } catch (e) {
@@ -291,7 +380,7 @@ function timeAgo(dateString) {
 // Helper: Sanitize HTML to prevent XSS from RSS content
 function sanitizeHTML(str) {
     if (!str) return '';
-    const div = document.createElement('div');
+    var div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML.replace(/<[^>]*>/g, '');
 }
@@ -310,12 +399,12 @@ function getArticleId(article) {
 
 // Toggle article expansion
 function toggleArticle(articleId) {
-    const encodedId = btoa(articleId).replace(/[^a-zA-Z0-9]/g, '');
-    const element = document.getElementById('article-' + encodedId);
+    var encodedId = btoa(articleId).replace(/[^a-zA-Z0-9]/g, '');
+    var element = document.getElementById('article-' + encodedId);
 
     if (!element) return;
 
-    const isExpanded = element.classList.contains('expanded');
+    var isExpanded = element.classList.contains('expanded');
 
     if (isExpanded) {
         element.classList.remove('expanded');
@@ -335,46 +424,47 @@ function toggleArticle(articleId) {
 }
 
 // Load news from summary.json or fallback to sample data
-async function loadNews() {
-    try {
-        const response = await fetch('summary.json');
+function loadNews() {
+    fetch('summary.json')
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error('HTTP ' + response.status);
+            }
+            return response.json();
+        })
+        .then(function(data) {
+            summaryData = data;
 
-        if (!response.ok) {
-            throw new Error('HTTP ' + response.status);
-        }
+            if (!summaryData.summaries || typeof summaryData.summaries !== 'object') {
+                throw new Error('Invalid summary.json structure');
+            }
 
-        summaryData = await response.json();
+            console.log('Loaded summary.json successfully', summaryData);
 
-        if (!summaryData.summaries || typeof summaryData.summaries !== 'object') {
-            throw new Error('Invalid summary.json structure');
-        }
+            renderNewsSection('aiNewsDisplay', 'ai_news', summaryData.summaries.ai_news);
+            renderNewsSection('businessNewsDisplay', 'business_news', summaryData.summaries.business_news);
+            renderNewsSection('leadershipNewsDisplay', 'leadership_news', summaryData.summaries.leadership_news);
+        })
+        .catch(function(error) {
+            console.log('summary.json not available, using fallback data:', error.message);
+            summaryData = null;
 
-        console.log('Loaded summary.json successfully', summaryData);
-
-        renderNewsSection('aiNewsDisplay', 'ai_news', summaryData.summaries.ai_news);
-        renderNewsSection('businessNewsDisplay', 'business_news', summaryData.summaries.business_news);
-        renderNewsSection('leadershipNewsDisplay', 'leadership_news', summaryData.summaries.leadership_news);
-
-    } catch (error) {
-        console.log('summary.json not available, using fallback data:', error.message);
-        summaryData = null;
-
-        renderNewsSection('aiNewsDisplay', 'ai_news', null);
-        renderNewsSection('businessNewsDisplay', 'business_news', null);
-        renderNewsSection('leadershipNewsDisplay', 'leadership_news', null);
-    }
+            renderNewsSection('aiNewsDisplay', 'ai_news', null);
+            renderNewsSection('businessNewsDisplay', 'business_news', null);
+            renderNewsSection('leadershipNewsDisplay', 'leadership_news', null);
+        });
 }
 
-// Render a single article item
+// Render a single article item (no inline handlers)
 function renderArticleItem(article) {
-    const articleId = getArticleId(article);
-    const encodedId = btoa(articleId).replace(/[^a-zA-Z0-9]/g, '');
-    const isViewed = state.viewedArticles.indexOf(articleId) !== -1;
-    const isExpanded = state.expandedArticles.indexOf(articleId) !== -1;
-    const timeAgoStr = timeAgo(article.published);
-    const description = sanitizeHTML(article.description || article.summary || '');
-    const displayDescription = description || 'No description available.';
-    const articleLink = article.link || article.url || '#';
+    var articleId = getArticleId(article);
+    var encodedId = btoa(articleId).replace(/[^a-zA-Z0-9]/g, '');
+    var isViewed = state.viewedArticles.indexOf(articleId) !== -1;
+    var isExpanded = state.expandedArticles.indexOf(articleId) !== -1;
+    var timeAgoStr = timeAgo(article.published);
+    var description = sanitizeHTML(article.description || article.summary || '');
+    var displayDescription = description || 'No description available.';
+    var articleLink = article.link || article.url || '#';
 
     // Score badge (only show if scores exist)
     var scoreBadge = '';
@@ -383,11 +473,11 @@ function renderArticleItem(article) {
     }
 
     return '<div id="article-' + encodedId + '" class="news-item ' + (isViewed ? 'viewed' : '') + ' ' + (isExpanded ? 'expanded' : '') + '">' +
-        '<div class="news-header" onclick="toggleArticle(\'' + articleId.replace(/'/g, "\\'") + '\')">' +
+        '<div class="news-header" data-article-id="' + articleId.replace(/"/g, '&quot;') + '">' +
             '<span class="expand-icon">&#9654;</span>' +
             '<div class="news-content">' +
                 '<div class="news-title">' +
-                    '<a href="' + articleLink + '" target="_blank" onclick="event.stopPropagation();">' + sanitizeHTML(article.title) + '</a>' +
+                    '<a href="' + articleLink + '" target="_blank">' + sanitizeHTML(article.title) + '</a>' +
                     scoreBadge +
                 '</div>' +
                 '<div style="font-size: 0.8rem; color: var(--text-tertiary); margin-top: 0.35rem;">' +
@@ -413,18 +503,18 @@ function toggleMoreArticles(categoryKey) {
     }
 }
 
-// Render a complete news section with summary and articles (top 5 + collapsible rest)
+// Render a complete news section with summary and articles (top 3 + collapsible rest)
 function renderNewsSection(elementId, categoryKey, categoryData) {
-    const container = document.getElementById(elementId);
-    let html = '';
+    var container = document.getElementById(elementId);
+    var html = '';
 
     if (categoryData && categoryData.summary) {
-        const generatedAt = summaryData && summaryData.generated_at
+        var generatedAt = summaryData && summaryData.generated_at
             ? new Date(summaryData.generated_at).toLocaleString('en-US', {
                 month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
               })
             : 'Unknown';
-        const articleCount = categoryData.article_count || (categoryData.articles ? categoryData.articles.length : 0);
+        var articleCount = categoryData.article_count || (categoryData.articles ? categoryData.articles.length : 0);
 
         html += '<div class="executive-summary">' +
             '<div class="executive-summary-header">' +
@@ -437,17 +527,17 @@ function renderNewsSection(elementId, categoryKey, categoryData) {
         html += '<div class="summary-unavailable">' +
             '<p class="summary-unavailable-text">Executive summaries not yet generated.</p>' +
             '<p class="summary-unavailable-text">Run <code>python news-summarizer.py</code> to create them.</p>' +
-            '<button class="btn-secondary" onclick="showRegenerateInstructions()">How to Generate Summaries</button>' +
+            '<button class="btn-secondary show-instructions-btn">How to Generate Summaries</button>' +
         '</div>';
     }
 
-    const articles = (categoryData && categoryData.articles) ? categoryData.articles : (FALLBACK_NEWS[categoryKey] || []);
+    var articles = (categoryData && categoryData.articles) ? categoryData.articles : (FALLBACK_NEWS[categoryKey] || []);
 
-    // Split into top 5 and the rest
-    const topArticles = articles.slice(0, 5);
-    const moreArticles = articles.slice(5);
+    // Split into top 3 and the rest
+    var topArticles = articles.slice(0, 3);
+    var moreArticles = articles.slice(3);
 
-    // Render top 5 articles
+    // Render top 3 articles
     html += '<div class="top-articles-section">';
     topArticles.forEach(function(article) {
         html += renderArticleItem(article);
@@ -456,7 +546,7 @@ function renderNewsSection(elementId, categoryKey, categoryData) {
 
     // Render remaining articles in collapsible section
     if (moreArticles.length > 0) {
-        html += '<button id="more-toggle-' + categoryKey + '" class="more-articles-toggle" onclick="toggleMoreArticles(\'' + categoryKey + '\')">' +
+        html += '<button id="more-toggle-' + categoryKey + '" class="more-articles-toggle" data-category="' + categoryKey + '">' +
             '<span class="toggle-icon">&#9660;</span>' +
             '<span>' + moreArticles.length + ' more article' + (moreArticles.length > 1 ? 's' : '') + '</span>' +
         '</button>';
@@ -471,9 +561,9 @@ function renderNewsSection(elementId, categoryKey, categoryData) {
     container.innerHTML = html;
 }
 
-// Show instructions modal for regenerating summaries
+// Show instructions modal for regenerating summaries (no inline handlers)
 function showRegenerateInstructions() {
-    const modal = document.createElement('div');
+    var modal = document.createElement('div');
     modal.id = 'instructions-modal';
     modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:1000;';
 
@@ -488,74 +578,81 @@ function showRegenerateInstructions() {
             '<li>Refresh this page to see the summaries</li>' +
         '</ol>' +
         '<p style="color:var(--text-tertiary);font-size:0.85rem;margin-bottom:1.5rem;">Need a Groq API key? Visit <a href="https://console.groq.com/keys" target="_blank" style="color:var(--accent-cyan);">console.groq.com/keys</a> (free tier available)</p>' +
-        '<button class="btn" onclick="document.getElementById(\'instructions-modal\').remove();">Got it!</button>' +
+        '<button class="btn instructions-modal-close">Got it!</button>' +
     '</div>';
 
     document.body.appendChild(modal);
-
-    modal.addEventListener('click', function(e) {
-        if (e.target === modal) modal.remove();
-    });
-
-    document.addEventListener('keydown', function closeOnEscape(e) {
-        if (e.key === 'Escape') {
-            modal.remove();
-            document.removeEventListener('keydown', closeOnEscape);
-        }
-    });
 }
 
-// Reflection
-function loadDailyReflection() {
-    const today = new Date().toISOString().split('T')[0];
+function closeInstructionsModal() {
+    var modal = document.getElementById('instructions-modal');
+    if (modal) {
+        modal.remove();
+    }
+}
 
+// Reflection - Show question in dashboard, button opens input modal
+function loadDailyReflection() {
+    var today = new Date().toISOString().split('T')[0];
+
+    // Check if we already have a reflection for today
     if (state.reflections[today]) {
-        renderSavedReflection(today, state.reflections[today]);
+        state.currentReflection = { question: state.reflections[today].question };
+        renderReflectionQuestion(state.reflections[today].question);
+        renderReflectionModal(state.reflections[today].question, state.reflections[today].response);
         return;
     }
 
-    const available = REFLECTIONS.filter(function(r) { return state.seenReflections.indexOf(r.id) === -1; });
+    // Get a new reflection question
+    var available = REFLECTIONS.filter(function(r) { return state.seenReflections.indexOf(r.id) === -1; });
     if (available.length === 0) {
         state.seenReflections = [];
         loadDailyReflection();
         return;
     }
 
-    const reflection = available[Math.floor(Math.random() * available.length)];
+    var reflection = available[Math.floor(Math.random() * available.length)];
     state.currentReflection = reflection;
     state.seenReflections.push(reflection.id);
     saveState();
 
-    renderReflection(reflection);
+    renderReflectionQuestion(reflection.question);
+    renderReflectionModal(reflection.question, '');
 }
 
-function renderReflection(reflection) {
-    const today = new Date().toISOString().split('T')[0];
-    const saved = state.reflections[today];
-
-    document.getElementById('reflectionDisplay').innerHTML =
-        '<p class="reflection-question">' + reflection.question + '</p>' +
-        '<textarea id="reflectionText" class="reflection-textarea" placeholder="Take your time... this is for you.">' + (saved ? saved.response : '') + '</textarea>' +
-        '<div class="reflection-actions" style="margin-top: 1rem;">' +
-            '<button class="btn" onclick="saveReflection()">Save Reflection</button>' +
-            '<button class="btn" onclick="exportReflections()">Export as Markdown</button>' +
-        '</div>';
+// Render the reflection question in the dashboard (always visible)
+function renderReflectionQuestion(question) {
+    var questionDisplay = document.getElementById('reflectionQuestionDisplay');
+    if (questionDisplay) {
+        questionDisplay.innerHTML = '<p class="reflection-question">' + question + '</p>';
+    }
 }
 
-function renderSavedReflection(date, data) {
-    document.getElementById('reflectionDisplay').innerHTML =
-        '<p class="reflection-question">' + data.question + '</p>' +
-        '<textarea id="reflectionText" class="reflection-textarea">' + data.response + '</textarea>' +
-        '<div class="reflection-actions" style="margin-top: 1rem;">' +
-            '<button class="btn" onclick="saveReflection()">Update Reflection</button>' +
-            '<button class="btn" onclick="exportReflections()">Export as Markdown</button>' +
-        '</div>' +
-        '<p style="color: var(--text-tertiary); font-size: 0.85rem; margin-top: 1rem;">Last saved: ' + new Date(data.timestamp).toLocaleString() + '</p>';
+// Render the reflection modal content (input area)
+function renderReflectionModal(question, savedResponse) {
+    var modalContent = document.getElementById('reflectionModalContent');
+    if (modalContent) {
+        var lastSavedText = '';
+        var today = new Date().toISOString().split('T')[0];
+        if (state.reflections[today] && state.reflections[today].timestamp) {
+            lastSavedText = '<p style="color: var(--text-tertiary); font-size: 0.85rem; margin-top: 1rem;">Last saved: ' + new Date(state.reflections[today].timestamp).toLocaleString() + '</p>';
+        }
+
+        modalContent.innerHTML =
+            '<p class="reflection-question" style="margin-bottom: 1.5rem;">' + question + '</p>' +
+            '<textarea id="reflectionText" class="reflection-textarea" placeholder="Take your time... this is for you.">' + (savedResponse || '') + '</textarea>' +
+            '<div class="reflection-actions" style="margin-top: 1rem;">' +
+                '<button class="btn save-reflection-btn">' + (savedResponse ? 'Update Reflection' : 'Save Reflection') + '</button>' +
+                '<button class="btn export-reflections-btn">Export as Markdown</button>' +
+            '</div>' +
+            lastSavedText;
+    }
 }
 
 function saveReflection() {
-    const today = new Date().toISOString().split('T')[0];
-    const text = document.getElementById('reflectionText').value;
+    var today = new Date().toISOString().split('T')[0];
+    var textArea = document.getElementById('reflectionText');
+    var text = textArea ? textArea.value : '';
 
     if (!text.trim()) {
         alert('Please write something before saving');
@@ -570,6 +667,7 @@ function saveReflection() {
 
     saveState();
     updateReflectionTrigger();
+    renderReflectionModal(state.currentReflection.question, text);
     alert('Reflection saved!');
 }
 
@@ -577,49 +675,59 @@ function saveReflection() {
 function openReflectionModal() {
     document.getElementById('reflectionModal').classList.add('active');
     document.body.style.overflow = 'hidden';
+    // Focus on textarea
+    var textArea = document.getElementById('reflectionText');
+    if (textArea) {
+        textArea.focus();
+    }
 }
 
 function closeReflectionModal() {
-    document.getElementById('reflectionModal').classList.remove('active');
-    document.body.style.overflow = '';
+    var modal = document.getElementById('reflectionModal');
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
 }
 
 function updateReflectionTrigger() {
-    const today = new Date().toISOString().split('T')[0];
-    const trigger = document.getElementById('reflectionTrigger');
-    const hasResponse = state.reflections[today] && state.reflections[today].response;
+    var today = new Date().toISOString().split('T')[0];
+    var trigger = document.getElementById('reflectionTrigger');
+    if (!trigger) return;
+
+    var hasResponse = state.reflections[today] && state.reflections[today].response;
 
     if (hasResponse) {
         trigger.classList.add('has-response');
-        trigger.innerHTML = '<span>&#10003; Reflection Complete</span>';
+        trigger.innerHTML = '<span>&#10003; View/Edit Reflection</span>';
     } else {
         trigger.classList.remove('has-response');
-        trigger.innerHTML = '<span>Daily Reflection</span>';
+        trigger.innerHTML = '<span>Write Reflection</span>';
     }
 }
 
 function exportReflections() {
-    const entries = Object.entries(state.reflections).sort(function(a, b) { return b[0].localeCompare(a[0]); });
+    var entries = Object.entries(state.reflections).sort(function(a, b) { return b[0].localeCompare(a[0]); });
 
     if (entries.length === 0) {
         alert('No reflections to export');
         return;
     }
 
-    let markdown = '# Daily Reflections\n\n';
+    var markdown = '# Daily Reflections\n\n';
     entries.forEach(function(entry) {
-        const date = entry[0];
-        const data = entry[1];
-        const formatted = new Date(date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        var date = entry[0];
+        var data = entry[1];
+        var formatted = new Date(date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         markdown += '## ' + formatted + '\n\n';
         markdown += '**Question:** ' + data.question + '\n\n';
         markdown += data.response + '\n\n';
         markdown += '---\n\n';
     });
 
-    const blob = new Blob([markdown], { type: 'text/markdown' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    var blob = new Blob([markdown], { type: 'text/markdown' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
     a.href = url;
     a.download = 'reflections-' + new Date().toISOString().split('T')[0] + '.md';
     a.click();

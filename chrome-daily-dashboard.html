@@ -342,34 +342,67 @@
             border-radius: 4px;
         }
 
-        /* Header Reflection Button */
+        /* Header Date */
         .header-reflection {
             display: flex;
             align-items: center;
             gap: 1rem;
         }
 
-        .reflection-trigger {
+        /* Reflection Banner (always visible) */
+        .reflection-banner {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(245, 158, 11, 0.03) 100%);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .reflection-banner-content {
             display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .reflection-banner-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent-amber);
+        }
+
+        .reflection-banner .reflection-question {
+            font-size: 1.25rem;
+            font-style: italic;
+            color: var(--text-primary);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .reflection-trigger {
+            display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            background: rgba(245, 158, 11, 0.1);
+            padding: 0.6rem 1.25rem;
+            background: rgba(245, 158, 11, 0.15);
             border: 1px solid var(--accent-amber);
             border-radius: 8px;
             color: var(--accent-amber);
             font-size: 0.9rem;
+            font-weight: 500;
             cursor: pointer;
             transition: all 0.2s ease;
+            align-self: flex-start;
         }
 
         .reflection-trigger:hover {
-            background: rgba(245, 158, 11, 0.2);
+            background: rgba(245, 158, 11, 0.25);
             transform: translateY(-1px);
         }
 
         .reflection-trigger.has-response {
-            background: rgba(16, 185, 129, 0.1);
+            background: rgba(16, 185, 129, 0.15);
             border-color: var(--success);
             color: var(--success);
         }
@@ -494,20 +527,28 @@
             <h1>Daily Intelligence</h1>
             <div class="header-reflection">
                 <span id="currentDate" style="color: var(--text-tertiary);"></span>
-                <button id="reflectionTrigger" class="reflection-trigger" onclick="openReflectionModal()">
-                    <span>Daily Reflection</span>
-                </button>
             </div>
         </header>
 
-        <!-- Reflection Modal -->
+        <!-- Daily Reflection Section (question always visible) -->
+        <div class="reflection-banner">
+            <div class="reflection-banner-content">
+                <div class="reflection-banner-label">Today's Reflection</div>
+                <div id="reflectionQuestionDisplay"></div>
+                <button id="reflectionTrigger" class="reflection-trigger">
+                    <span>Write Reflection</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Reflection Modal (input only) -->
         <div id="reflectionModal" class="reflection-modal">
             <div class="reflection-modal-content">
                 <div class="reflection-modal-header">
                     <h2 style="font-family: var(--font-display); color: var(--accent-amber);">Daily Reflection</h2>
-                    <button class="reflection-modal-close" onclick="closeReflectionModal()">&times;</button>
+                    <button id="reflectionModalClose" class="reflection-modal-close">&times;</button>
                 </div>
-                <div id="reflectionDisplay"></div>
+                <div id="reflectionModalContent"></div>
             </div>
         </div>
 
@@ -516,7 +557,7 @@
             <div class="card">
                 <h2 style="font-family: var(--font-display); margin-bottom: 1.5rem;">Daily Insight</h2>
                 <div id="insightDisplay"></div>
-                <button class="btn" onclick="refreshInsight()">Next Insight</button>
+                <button id="nextInsightBtn" class="btn">Next Insight</button>
             </div>
 
             <!-- Microlearning -->
