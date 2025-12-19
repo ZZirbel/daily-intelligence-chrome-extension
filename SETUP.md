@@ -1,6 +1,6 @@
-# AI Daily Dashboard - Complete Setup Guide
+# Daily Intelligence - Complete Setup Guide
 
-This guide walks you through setting up the AI Daily Dashboard, including:
+This guide walks you through setting up the Daily Intelligence Chrome Extension, including:
 1. Groq API configuration
 2. Git repository setup
 3. Chrome extension installation
@@ -108,7 +108,7 @@ git init
 git add .
 
 # Create initial commit
-git commit -m "Initial commit: AI Daily Dashboard with news summarization"
+git commit -m "Initial commit: Daily Intelligence with news summarization"
 ```
 
 ### Step 2.2: Verify .gitignore is Working
@@ -131,7 +131,7 @@ You should NOT see:
 3. Link and push:
 
 ```bash
-git remote add origin https://github.com/YOUR_USERNAME/chrome-daily-dashboard.git
+git remote add origin https://github.com/YOUR_USERNAME/daily-intelligence-chrome-extension.git
 git branch -M main
 git push -u origin main
 ```
@@ -139,8 +139,8 @@ git push -u origin main
 ### Repository Structure
 
 ```
-chrome-daily-dashboard/
-├── chrome-daily-dashboard.html       # Main dashboard
+daily-intelligence-chrome-extension/
+├── daily-intelligence.html       # Main dashboard
 ├── news-summarizer.py                # Python summarizer script
 ├── generate-icons.py                 # Icon generator for Chrome extension
 ├── requirements.txt                  # Python dependencies
@@ -180,13 +180,13 @@ This creates `icons/icon16.png`, `icons/icon48.png`, and `icons/icon128.png`.
 1. Open Chrome and go to: `chrome://extensions/`
 2. Enable **"Developer mode"** (toggle in top right)
 3. Click **"Load unpacked"**
-4. Navigate to and select your `chrome-daily-dashboard` folder
+4. Navigate to and select your `daily-intelligence-chrome-extension` folder
 5. The extension should appear in your extensions list
 
 ### Step 3.4: Test the Extension
 
 1. Open a new tab (Ctrl+T or Cmd+T)
-2. You should see the AI Daily Dashboard instead of Chrome's default new tab page
+2. You should see the Daily Intelligence instead of Chrome's default new tab page
 3. If you see "Executive summaries not yet generated," that's expected - run the Python script first
 
 ### Troubleshooting Chrome Extension
@@ -209,7 +209,7 @@ This creates `icons/icon16.png`, `icons/icon48.png`, and `icons/icon128.png`.
 
 After making changes to HTML or JS:
 1. Go to `chrome://extensions/`
-2. Find "AI Daily Dashboard"
+2. Find "Daily Intelligence"
 3. Click the refresh icon (🔄) or "Reload"
 
 ---
@@ -224,7 +224,7 @@ Create `run-summarizer.bat` in your dashboard folder:
 
 ```batch
 @echo off
-cd /d "C:\Users\ZanZirbel\Obsidian\personal-repos\chrome-daily-dashboard"
+cd /d "C:\Users\ZanZirbel\Obsidian\personal-repos\daily-intelligence-chrome-extension"
 python news-summarizer.py >> news.log 2>&1
 echo Completed at %date% %time% >> news.log
 ```
@@ -257,8 +257,8 @@ echo Completed at %date% %time% >> news.log
 4. **Actions Tab:**
    - Click "New..."
    - Action: "Start a program"
-   - Program/script: `C:\Users\ZanZirbel\Obsidian\personal-repos\chrome-daily-dashboard\run-summarizer.bat`
-   - Start in: `C:\Users\ZanZirbel\Obsidian\personal-repos\chrome-daily-dashboard`
+   - Program/script: `C:\Users\ZanZirbel\Obsidian\personal-repos\daily-intelligence-chrome-extension\run-summarizer.bat`
+   - Start in: `C:\Users\ZanZirbel\Obsidian\personal-repos\daily-intelligence-chrome-extension`
    - Click "OK"
 
 5. **Conditions Tab:**
@@ -394,7 +394,7 @@ git push
 
 ---
 
-**Setup complete!** Your AI Daily Dashboard should now:
+**Setup complete!** Your Daily Intelligence should now:
 - Open automatically in new Chrome tabs
 - Display AI-generated executive summaries
 - Update automatically every morning at 6 AM

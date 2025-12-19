@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Chrome Daily Dashboard - News Summarizer
+Daily Intelligence - News Summarizer
 Fetches RSS feeds and generates executive summaries with multi-layer article scoring.
 
 Scoring System (WSJF-style):

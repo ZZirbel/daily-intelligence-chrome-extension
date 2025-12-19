@@ -1,4 +1,4 @@
-// Chrome Daily Dashboard - Main JavaScript
+// Daily Intelligence - Main JavaScript
 // Complete functionality for insights, microlearning, news, and reflections
 
 // Data Arrays - Sample subset included (user can expand to full 52/100/52)

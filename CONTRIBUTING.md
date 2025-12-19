@@ -1,4 +1,4 @@
-# Contributing to Chrome Daily Dashboard
+# Contributing to Daily Intelligence
 
 Thank you for your interest in contributing! This document provides guidelines for contributing to the project.
 
@@ -13,8 +13,8 @@ Thank you for your interest in contributing! This document provides guidelines f
 
 ```bash
 # Clone your fork
-git clone https://github.com/YOUR_USERNAME/chrome-daily-dashboard.git
-cd chrome-daily-dashboard
+git clone https://github.com/YOUR_USERNAME/daily-intelligence-chrome-extension.git
+cd daily-intelligence-chrome-extension
 
 # Install Python dependencies
 pip install -r requirements.txt
