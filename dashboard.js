@@ -71,6 +71,10 @@ const state = {
     viewedArticles: []
 };
 
+// Valid state keys for safe loading
+const VALID_STATE_KEYS = ['seenInsights', 'seenMicrolearnings', 'seenReflections',
+    'quizProgress', 'reflections', 'expandedArticles', 'viewedArticles'];
+
 // Summary data loaded from summary.json
 let summaryData = null;
 
@@ -190,10 +194,20 @@ function setupEventListeners() {
 }
 
 function loadState() {
-    var saved = localStorage.getItem('dashboard_state');
-    if (saved) {
-        var parsed = JSON.parse(saved);
-        Object.assign(state, parsed);
+    try {
+        var saved = localStorage.getItem('dashboard_state');
+        if (saved) {
+            var parsed = JSON.parse(saved);
+            // Only copy valid/expected properties to prevent injection
+            VALID_STATE_KEYS.forEach(function(key) {
+                if (parsed.hasOwnProperty(key)) {
+                    state[key] = parsed[key];
+                }
+            });
+        }
+    } catch (e) {
+        console.error('Failed to load state, using defaults:', e);
+        localStorage.removeItem('dashboard_state');
     }
 }
 
@@ -209,11 +223,17 @@ function displayCurrentDate() {
 
 // Daily Insight
 function loadDailyInsight() {
+    // Guard against empty data array
+    if (INSIGHTS.length === 0) {
+        document.getElementById('insightDisplay').innerHTML =
+            '<p style="color: var(--text-tertiary);">No insights available.</p>';
+        return;
+    }
+
     var available = INSIGHTS.filter(function(i) { return state.seenInsights.indexOf(i.id) === -1; });
     if (available.length === 0) {
         state.seenInsights = [];
-        loadDailyInsight();
-        return;
+        available = INSIGHTS; // Use full array instead of recursion
     }
 
     var insight = available[Math.floor(Math.random() * available.length)];
@@ -242,11 +262,17 @@ function refreshInsight() {
 
 // Microlearning
 function loadMicrolearning() {
+    // Guard against empty data array
+    if (MICROLEARNINGS.length === 0) {
+        document.getElementById('microlearningDisplay').innerHTML =
+            '<p style="color: var(--text-tertiary);">No microlearnings available.</p>';
+        return;
+    }
+
     var available = MICROLEARNINGS.filter(function(m) { return state.seenMicrolearnings.indexOf(m.id) === -1; });
     if (available.length === 0) {
         state.seenMicrolearnings = [];
-        loadMicrolearning();
-        return;
+        available = MICROLEARNINGS; // Use full array instead of recursion
     }
 
     var learning = available[Math.floor(Math.random() * available.length)];
@@ -377,12 +403,30 @@ function timeAgo(dateString) {
     }
 }
 
-// Helper: Sanitize HTML to prevent XSS from RSS content
-function sanitizeHTML(str) {
+// Helper: Escape HTML to prevent XSS (for use with innerHTML)
+function escapeHTML(str) {
     if (!str) return '';
     var div = document.createElement('div');
     div.textContent = str;
-    return div.innerHTML.replace(/<[^>]*>/g, '');
+    return div.innerHTML;
+}
+
+// Alias for backward compatibility
+var sanitizeHTML = escapeHTML;
+
+// Helper: Validate URL is safe (http/https only)
+function isValidURL(str) {
+    try {
+        var url = new URL(str);
+        return url.protocol === 'http:' || url.protocol === 'https:';
+    } catch (e) {
+        return false;
+    }
+}
+
+// Helper: Safe URL for href attributes
+function safeURL(str) {
+    return isValidURL(str) ? str : '#';
 }
 
 // Helper: Truncate text with ellipsis
@@ -397,9 +441,24 @@ function getArticleId(article) {
     return article.link || article.title || '';
 }
 
+// Helper: Unicode-safe encoding for element IDs
+function safeEncodeId(str) {
+    try {
+        return btoa(encodeURIComponent(str)).replace(/[^a-zA-Z0-9]/g, '');
+    } catch (e) {
+        // Fallback to simple hash for problematic strings
+        var hash = 0;
+        for (var i = 0; i < str.length; i++) {
+            hash = ((hash << 5) - hash) + str.charCodeAt(i);
+            hash |= 0;
+        }
+        return 'id' + Math.abs(hash);
+    }
+}
+
 // Toggle article expansion
 function toggleArticle(articleId) {
-    var encodedId = btoa(articleId).replace(/[^a-zA-Z0-9]/g, '');
+    var encodedId = safeEncodeId(articleId);
     var element = document.getElementById('article-' + encodedId);
 
     if (!element) return;
@@ -425,8 +484,13 @@ function toggleArticle(articleId) {
 
 // Load news from summary.json or fallback to sample data
 function loadNews() {
-    fetch('summary.json')
+    // Add timeout using AbortController
+    var controller = new AbortController();
+    var timeoutId = setTimeout(function() { controller.abort(); }, 5000);
+
+    fetch('summary.json', { signal: controller.signal })
         .then(function(response) {
+            clearTimeout(timeoutId);
             if (!response.ok) {
                 throw new Error('HTTP ' + response.status);
             }
@@ -446,6 +510,7 @@ function loadNews() {
             renderNewsSection('leadershipNewsDisplay', 'leadership_news', summaryData.summaries.leadership_news);
         })
         .catch(function(error) {
+            clearTimeout(timeoutId);
             console.log('summary.json not available, using fallback data:', error.message);
             summaryData = null;
 
@@ -458,13 +523,13 @@ function loadNews() {
 // Render a single article item (no inline handlers)
 function renderArticleItem(article) {
     var articleId = getArticleId(article);
-    var encodedId = btoa(articleId).replace(/[^a-zA-Z0-9]/g, '');
+    var encodedId = safeEncodeId(articleId);
     var isViewed = state.viewedArticles.indexOf(articleId) !== -1;
     var isExpanded = state.expandedArticles.indexOf(articleId) !== -1;
     var timeAgoStr = timeAgo(article.published);
-    var description = sanitizeHTML(article.description || article.summary || '');
+    var description = escapeHTML(article.description || article.summary || '');
     var displayDescription = description || 'No description available.';
-    var articleLink = article.link || article.url || '#';
+    var articleLink = safeURL(article.link || article.url || '');
 
     // Score badge (only show if scores exist)
     var scoreBadge = '';
@@ -473,21 +538,21 @@ function renderArticleItem(article) {
     }
 
     return '<div id="article-' + encodedId + '" class="news-item ' + (isViewed ? 'viewed' : '') + ' ' + (isExpanded ? 'expanded' : '') + '">' +
-        '<div class="news-header" data-article-id="' + articleId.replace(/"/g, '&quot;') + '">' +
+        '<div class="news-header" data-article-id="' + escapeHTML(articleId) + '">' +
             '<span class="expand-icon">&#9654;</span>' +
             '<div class="news-content">' +
                 '<div class="news-title">' +
-                    '<a href="' + articleLink + '" target="_blank">' + sanitizeHTML(article.title) + '</a>' +
+                    '<a href="' + articleLink + '" target="_blank" rel="noopener noreferrer">' + escapeHTML(article.title) + '</a>' +
                     scoreBadge +
                 '</div>' +
                 '<div style="font-size: 0.8rem; color: var(--text-tertiary); margin-top: 0.35rem;">' +
-                    sanitizeHTML(article.source) + (timeAgoStr ? ' - ' + timeAgoStr : '') +
+                    escapeHTML(article.source) + (timeAgoStr ? ' - ' + timeAgoStr : '') +
                 '</div>' +
             '</div>' +
         '</div>' +
         '<div class="news-description">' +
             '<p class="news-description-text">' + truncateText(displayDescription, 400) + '</p>' +
-            '<a href="' + articleLink + '" class="read-full-link" target="_blank">Read Full Article &rarr;</a>' +
+            '<a href="' + articleLink + '" class="read-full-link" target="_blank" rel="noopener noreferrer">Read Full Article &rarr;</a>' +
         '</div>' +
     '</div>';
 }
@@ -593,6 +658,15 @@ function closeInstructionsModal() {
 
 // Reflection - Show question in dashboard, button opens input modal
 function loadDailyReflection() {
+    // Guard against empty data array
+    if (REFLECTIONS.length === 0) {
+        var questionDisplay = document.getElementById('reflectionQuestionDisplay');
+        if (questionDisplay) {
+            questionDisplay.innerHTML = '<p style="color: var(--text-tertiary);">No reflections available.</p>';
+        }
+        return;
+    }
+
     var today = new Date().toISOString().split('T')[0];
 
     // Check if we already have a reflection for today
@@ -607,8 +681,7 @@ function loadDailyReflection() {
     var available = REFLECTIONS.filter(function(r) { return state.seenReflections.indexOf(r.id) === -1; });
     if (available.length === 0) {
         state.seenReflections = [];
-        loadDailyReflection();
-        return;
+        available = REFLECTIONS; // Use full array instead of recursion
     }
 
     var reflection = available[Math.floor(Math.random() * available.length)];
