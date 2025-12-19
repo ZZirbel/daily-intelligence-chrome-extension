@@ -37,16 +37,24 @@ FEED_SOURCES = {
         'https://techcrunch.com/category/artificial-intelligence/feed/',
         'https://www.technologyreview.com/feed',
         'https://www.theverge.com/rss/ai-artificial-intelligence/index.xml',
+        'https://news.mit.edu/rss/topic/artificial-intelligence2',
+        'https://blog.google/technology/ai/rss/',
+        'https://openai.com/blog/rss.xml',
     ],
     'business_news': [
-        'https://hbr.org/feed',
-        'https://www.mckinsey.com/featured-insights/rss',
-        'https://www.strategy-business.com/rss',
+        'https://feeds.content.dowjones.io/public/rss/WSJcomUSBusiness',
+        'https://www.economist.com/business/rss.xml',
+        'https://sloanreview.mit.edu/feed/',
+        'https://knowledge.wharton.upenn.edu/feed/',
+        'https://qz.com/feed',
     ],
     'leadership_news': [
-        'https://hbr.org/topic/leadership/feed',
         'https://www.fastcompany.com/leadership/rss',
-        'https://www.inc.com/rss/leadership.xml',
+        'https://seths.blog/feed/',
+        'https://www.lollydaskal.com/feed/',
+        'https://leadershipfreak.blog/feed/',
+        'https://michaelhyatt.com/feed/',
+        'https://simonsinek.com/feed/',
     ]
 }
 
@@ -67,12 +75,16 @@ SOURCE_AUTHORITY_SCORES = {
     'hbr.org': 9,
     'mit.edu': 10,
     'stanford.edu': 10,
+    'sloanreview.mit.edu': 10,
+    'knowledge.wharton.upenn.edu': 10,
     'technologyreview.com': 9,
     'deepmind.com': 9,
     'openai.com': 9,
     'anthropic.com': 9,
     'research.google': 9,
+    'blog.google': 9,
     'ai.meta.com': 8,
+    'huggingface.co': 8,
 
     # Respected Tech Publications (Score: 7-8)
     'techcrunch.com': 8,
@@ -84,9 +96,11 @@ SOURCE_AUTHORITY_SCORES = {
 
     # Business Publications (Score: 7-8)
     'wsj.com': 8,
+    'dowjones.io': 8,
     'ft.com': 8,
     'bloomberg.com': 8,
     'economist.com': 8,
+    'qz.com': 7,
     'forbes.com': 7,
     'fortune.com': 7,
     'businessinsider.com': 6,
@@ -96,6 +110,13 @@ SOURCE_AUTHORITY_SCORES = {
     'inc.com': 6,
     'entrepreneur.com': 5,
     'strategy-business.com': 7,
+
+    # Leadership Thought Leaders (Score: 7-8)
+    'seths.blog': 8,
+    'simonsinek.com': 8,
+    'michaelhyatt.com': 7,
+    'lollydaskal.com': 7,
+    'leadershipfreak.blog': 7,
 }
 
 # Default score for unknown sources
