@@ -71,6 +71,84 @@ const state = {
     viewedArticles: []
 };
 
+// Daily cache for persisting dashboard content across new tabs
+// Refreshes at 3am local time
+const DAILY_CACHE_KEY = 'dashboard_daily_cache';
+let dailyCache = null;
+
+// Get the "dashboard day" boundary timestamp (3am local time)
+// Returns the most recent 3am that has passed
+function getDashboardDayStart() {
+    var now = new Date();
+    var today3am = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 3, 0, 0, 0);
+
+    // If it's before 3am, the dashboard day started at 3am yesterday
+    if (now < today3am) {
+        today3am.setDate(today3am.getDate() - 1);
+    }
+
+    return today3am.getTime();
+}
+
+// Check if the cached data is still valid (same dashboard day)
+function isCacheValid(cache) {
+    if (!cache || !cache.timestamp) {
+        return false;
+    }
+
+    var currentDayStart = getDashboardDayStart();
+    var cacheDayStart = cache.dayStart;
+
+    // Cache is valid if it was created during the current dashboard day
+    return cacheDayStart === currentDayStart;
+}
+
+// Load daily cache from localStorage
+function loadDailyCache() {
+    try {
+        var saved = localStorage.getItem(DAILY_CACHE_KEY);
+        if (saved) {
+            var parsed = JSON.parse(saved);
+            if (isCacheValid(parsed)) {
+                dailyCache = parsed;
+                console.log('Daily cache loaded - valid until next 3am');
+                return true;
+            } else {
+                console.log('Daily cache expired (past 3am boundary), will refresh');
+                localStorage.removeItem(DAILY_CACHE_KEY);
+            }
+        }
+    } catch (e) {
+        console.error('Failed to load daily cache:', e);
+        localStorage.removeItem(DAILY_CACHE_KEY);
+    }
+    dailyCache = null;
+    return false;
+}
+
+// Save daily cache to localStorage
+function saveDailyCache() {
+    try {
+        if (dailyCache) {
+            localStorage.setItem(DAILY_CACHE_KEY, JSON.stringify(dailyCache));
+        }
+    } catch (e) {
+        console.error('Failed to save daily cache:', e);
+    }
+}
+
+// Initialize a new daily cache
+function initDailyCache() {
+    dailyCache = {
+        timestamp: Date.now(),
+        dayStart: getDashboardDayStart(),
+        insight: null,
+        microlearning: null,
+        reflection: null,
+        newsData: null
+    };
+}
+
 // Valid state keys for safe loading
 const VALID_STATE_KEYS = ['seenInsights', 'seenMicrolearnings', 'seenReflections',
     'quizProgress', 'reflections', 'expandedArticles', 'viewedArticles'];
@@ -81,6 +159,13 @@ let summaryData = null;
 // Initialize
 function init() {
     loadState();
+    var cacheIsValid = loadDailyCache();
+
+    // If no valid cache exists, initialize a new one
+    if (!cacheIsValid) {
+        initDailyCache();
+    }
+
     displayCurrentDate();
     loadDailyInsight();
     loadMicrolearning();
@@ -230,6 +315,15 @@ function loadDailyInsight() {
         return;
     }
 
+    // Check if we have a cached insight for today
+    if (dailyCache && dailyCache.insight) {
+        var insight = dailyCache.insight;
+        state.currentInsight = insight;
+        renderInsight(insight);
+        return;
+    }
+
+    // Generate new insight
     var available = INSIGHTS.filter(function(i) { return state.seenInsights.indexOf(i.id) === -1; });
     if (available.length === 0) {
         state.seenInsights = [];
@@ -241,6 +335,17 @@ function loadDailyInsight() {
     state.seenInsights.push(insight.id);
     saveState();
 
+    // Cache the insight for today
+    if (dailyCache) {
+        dailyCache.insight = insight;
+        saveDailyCache();
+    }
+
+    renderInsight(insight);
+}
+
+// Render insight to the display
+function renderInsight(insight) {
     var sourcesHtml = insight.sources.map(function(s) {
         return '<a href="' + s.url + '" class="source-link" target="_blank">' + s.title + '</a>';
     }).join('');
@@ -257,6 +362,10 @@ function loadDailyInsight() {
 }
 
 function refreshInsight() {
+    // Clear cached insight so a new one is generated
+    if (dailyCache) {
+        dailyCache.insight = null;
+    }
     loadDailyInsight();
 }
 
@@ -269,6 +378,15 @@ function loadMicrolearning() {
         return;
     }
 
+    // Check if we have a cached microlearning for today
+    if (dailyCache && dailyCache.microlearning) {
+        var learning = dailyCache.microlearning;
+        state.currentMicrolearning = learning;
+        renderMicrolearning(learning);
+        return;
+    }
+
+    // Generate new microlearning
     var available = MICROLEARNINGS.filter(function(m) { return state.seenMicrolearnings.indexOf(m.id) === -1; });
     if (available.length === 0) {
         state.seenMicrolearnings = [];
@@ -280,7 +398,17 @@ function loadMicrolearning() {
     state.seenMicrolearnings.push(learning.id);
     saveState();
 
-    var progress = state.quizProgress[learning.id] || { correct: 0, mastery: 'new' };
+    // Cache the microlearning for today
+    if (dailyCache) {
+        dailyCache.microlearning = learning;
+        saveDailyCache();
+    }
+
+    renderMicrolearning(learning);
+}
+
+// Render microlearning to the display
+function renderMicrolearning(learning) {
     var masteredCount = Object.values(state.quizProgress).filter(function(p) { return p.mastery === 'mastered'; }).length;
 
     var sourcesHtml = learning.sources.map(function(s) {
@@ -484,7 +612,16 @@ function toggleArticle(articleId) {
 
 // Load news from summary.json or fallback to sample data
 function loadNews() {
-    // Add timeout using AbortController
+    // Check if we have cached news data for today (main content only)
+    // Note: 'more articles' section will fetch fresh data when expanded
+    if (dailyCache && dailyCache.newsData) {
+        console.log('Using cached news data for today');
+        summaryData = dailyCache.newsData;
+        renderNewsSectionFromCache();
+        return;
+    }
+
+    // Fetch fresh news data
     var controller = new AbortController();
     var timeoutId = setTimeout(function() { controller.abort(); }, 5000);
 
@@ -505,6 +642,12 @@ function loadNews() {
 
             console.log('Loaded summary.json successfully', summaryData);
 
+            // Cache the news data for today
+            if (dailyCache) {
+                dailyCache.newsData = summaryData;
+                saveDailyCache();
+            }
+
             renderNewsSection('aiNewsDisplay', 'ai_news', summaryData.summaries.ai_news);
             renderNewsSection('businessNewsDisplay', 'business_news', summaryData.summaries.business_news);
             renderNewsSection('leadershipNewsDisplay', 'leadership_news', summaryData.summaries.leadership_news);
@@ -518,6 +661,19 @@ function loadNews() {
             renderNewsSection('businessNewsDisplay', 'business_news', null);
             renderNewsSection('leadershipNewsDisplay', 'leadership_news', null);
         });
+}
+
+// Render news sections from cached data
+function renderNewsSectionFromCache() {
+    if (summaryData && summaryData.summaries) {
+        renderNewsSection('aiNewsDisplay', 'ai_news', summaryData.summaries.ai_news);
+        renderNewsSection('businessNewsDisplay', 'business_news', summaryData.summaries.business_news);
+        renderNewsSection('leadershipNewsDisplay', 'leadership_news', summaryData.summaries.leadership_news);
+    } else {
+        renderNewsSection('aiNewsDisplay', 'ai_news', null);
+        renderNewsSection('businessNewsDisplay', 'business_news', null);
+        renderNewsSection('leadershipNewsDisplay', 'leadership_news', null);
+    }
 }
 
 // Render a single article item (no inline handlers)
@@ -669,11 +825,20 @@ function loadDailyReflection() {
 
     var today = new Date().toISOString().split('T')[0];
 
-    // Check if we already have a reflection for today
+    // Check if we already have a saved reflection for today
     if (state.reflections[today]) {
         state.currentReflection = { question: state.reflections[today].question };
         renderReflectionQuestion(state.reflections[today].question);
         renderReflectionModal(state.reflections[today].question, state.reflections[today].response);
+        return;
+    }
+
+    // Check if we have a cached reflection question for today (even without saved response)
+    if (dailyCache && dailyCache.reflection) {
+        var reflection = dailyCache.reflection;
+        state.currentReflection = reflection;
+        renderReflectionQuestion(reflection.question);
+        renderReflectionModal(reflection.question, '');
         return;
     }
 
@@ -688,6 +853,12 @@ function loadDailyReflection() {
     state.currentReflection = reflection;
     state.seenReflections.push(reflection.id);
     saveState();
+
+    // Cache the reflection question for today
+    if (dailyCache) {
+        dailyCache.reflection = reflection;
+        saveDailyCache();
+    }
 
     renderReflectionQuestion(reflection.question);
     renderReflectionModal(reflection.question, '');
