@@ -625,7 +625,9 @@ function loadNews() {
     var controller = new AbortController();
     var timeoutId = setTimeout(function() { controller.abort(); }, 5000);
 
-    fetch('summary.json', { signal: controller.signal })
+    // Cache-bust using dashboard day boundary to ensure fresh fetch each day
+    var cacheBuster = getDashboardDayStart();
+    fetch('summary.json?v=' + cacheBuster, { signal: controller.signal, cache: 'no-cache' })
         .then(function(response) {
             clearTimeout(timeoutId);
             if (!response.ok) {
