@@ -149,6 +149,46 @@ function initDailyCache() {
     };
 }
 
+// Force refresh all content (manual override)
+var isRefreshing = false;
+
+function refreshAllContent() {
+    // Prevent rapid clicks causing race conditions
+    if (isRefreshing) return;
+    isRefreshing = true;
+
+    console.log('Manual refresh triggered - clearing cache and reloading content');
+
+    // Preserve reflection question so user doesn't lose their current prompt
+    var preservedReflection = dailyCache ? dailyCache.reflection : null;
+
+    // Clear localStorage cache
+    localStorage.removeItem(DAILY_CACHE_KEY);
+
+    // Reset in-memory cache
+    dailyCache = null;
+    summaryData = null;
+
+    // Re-initialize fresh cache
+    initDailyCache();
+
+    // Restore reflection question if it existed
+    if (preservedReflection && dailyCache) {
+        dailyCache.reflection = preservedReflection;
+    }
+
+    // Reload all content sections
+    loadDailyInsight();
+    loadMicrolearning();
+    loadDailyReflection();
+    loadNews();
+
+    // Reset refresh guard after delay
+    setTimeout(function() { isRefreshing = false; }, 1000);
+
+    console.log('Content refresh complete');
+}
+
 // Valid state keys for safe loading
 const VALID_STATE_KEYS = ['seenInsights', 'seenMicrolearnings', 'seenReflections',
     'quizProgress', 'reflections', 'expandedArticles', 'viewedArticles'];
@@ -211,6 +251,12 @@ function setupEventListeners() {
     var nextInsightBtn = document.getElementById('nextInsightBtn');
     if (nextInsightBtn) {
         nextInsightBtn.addEventListener('click', refreshInsight);
+    }
+
+    // Refresh content button
+    var refreshBtn = document.getElementById('refreshContentBtn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', refreshAllContent);
     }
 
     // Event delegation for dynamically created elements

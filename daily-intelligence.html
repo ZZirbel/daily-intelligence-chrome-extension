@@ -67,7 +67,40 @@
         }
         
         .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(20, 184, 166, 0.4); transition: all 150ms; }
-        
+
+        .refresh-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 0.4rem 0.6rem;
+            cursor: pointer;
+            color: var(--text-tertiary);
+            font-size: 1rem;
+            position: relative;
+            transition: all 150ms;
+        }
+
+        .refresh-btn:hover {
+            border-color: var(--accent-teal);
+            color: var(--accent-teal);
+            background: rgba(20, 184, 166, 0.1);
+        }
+
+        .refresh-btn[data-tooltip]:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: -45px;
+            right: 0;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            border: 1px solid var(--border-color);
+            z-index: 100;
+        }
+
         .card {
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
@@ -525,8 +558,9 @@
     <div class="container">
         <header class="header">
             <h1>Daily Intelligence</h1>
-            <div class="header-reflection">
+            <div class="header-reflection" style="display: flex; align-items: center; gap: 1rem;">
                 <span id="currentDate" style="color: var(--text-tertiary);"></span>
+                <button id="refreshContentBtn" class="refresh-btn" data-tooltip="Refresh all content (clears daily cache)">&#x21bb;</button>
             </div>
         </header>
 
