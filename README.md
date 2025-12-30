@@ -5,12 +5,20 @@ Your personal intelligence hub for leadership development, continuous learning, 
 ## Features
 
 ### Daily Insight
-- 50+ curated leadership insights focused on visionary thinking, empowerment, and decisive action
+- **60 curated leadership insights** across 9 categories:
+  - Visionary Leadership (12), Empowering Leadership (12), Decisive Action (10)
+  - Coaching & Development (8), Strategic Execution (6), Technical Leadership (5)
+  - Change Leadership (3), Team Dynamics (2), Communication Excellence (2)
 - Sourced from top leadership books and Harvard Business Review articles
 - No-repeat rotation until all insights have been seen
 
 ### Microlearning with Spaced Repetition
-- 100 microlearnings across 17 technical and strategic categories
+- **100 microlearnings** across 17 technical and strategic categories:
+  - AI/ML Fundamentals, Cloud Architecture, Agile/DevOps, System Design
+  - Technology Strategy, Business Case Building, ROI Analysis
+  - Digital Transformation, Change Management, Innovation Frameworks
+  - Team Psychology, Strategic Thinking, Communication, Decision-Making
+  - Organizational Design, Knowledge Graphs, Software Development
 - Interactive quizzes with instant feedback
 - Progress tracking (New → Learning → Reviewing → Mastered)
 - "Brush Up" links for incorrect answers
@@ -22,7 +30,10 @@ Your personal intelligence hub for leadership development, continuous learning, 
 - 12-hour intelligent caching
 
 ### Daily Reflection
-- 50+ deep introspective questions for personal growth
+- **52 deep introspective questions** across 8 themes:
+  - Personal Evolution (10), Leadership Blind Spots (10), Team Dynamics (8)
+  - Decisive Action (6), Vulnerability (6), Growth Edges (5)
+  - Purpose (4), Systems Thinking (3)
 - Save reflections with timestamps
 - Export all reflections as Markdown
 
@@ -118,6 +129,10 @@ daily-intelligence-chrome-extension/
 ├── config.example.js         # API key template (copy to config.js)
 ├── config.js                 # Your API key (gitignored)
 ├── manifest.json             # Chrome extension manifest
+├── content/                  # Modular content files
+│   ├── insights-content.js       # 60 leadership insights
+│   ├── microlearnings-content.js # 100 microlearnings with quizzes
+│   └── reflections-content.js    # 52 daily reflections
 ├── news-summarizer.py        # Optional Python script
 ├── .env.example              # Python API key template
 ├── .gitignore                # Excludes sensitive files
@@ -127,7 +142,8 @@ daily-intelligence-chrome-extension/
 │       ├── 002-chrome-extension-csp-architecture.md
 │       ├── 003-rss-feed-source-strategy.md
 │       ├── 004-live-rss-fetching-architecture.md
-│       └── 005-api-key-security-strategy.md
+│       ├── 005-api-key-security-strategy.md
+│       └── 006-modular-content-architecture.md
 └── icons/                    # Extension icons
 ```
 

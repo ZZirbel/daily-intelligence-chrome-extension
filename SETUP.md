@@ -64,6 +64,10 @@ daily-intelligence-chrome-extension/
 ├── daily-intelligence.html
 ├── dashboard.js
 ├── manifest.json
+├── content/             # Modular content files
+│   ├── insights-content.js       # 60 leadership insights
+│   ├── microlearnings-content.js # 100 microlearnings with quizzes
+│   └── reflections-content.js    # 52 daily reflections
 └── icons/
 ```
 
