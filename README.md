@@ -37,6 +37,17 @@ Your personal intelligence hub for leadership development, continuous learning, 
 - Save reflections with timestamps
 - Export all reflections as Markdown
 
+### Appearance Settings
+- **6 preset themes**: Default, Midnight, Ocean, Forest, Sunset, Light
+- **Full color customization**:
+  - Primary/Card backgrounds
+  - Primary/Secondary accent colors
+  - Category badge colors
+  - Text colors (primary, secondary, date)
+- **Background images**: Custom URL with overlay opacity and blur controls
+- **Card transparency**: Adjustable opacity for content cards
+- **Cross-device sync**: Settings sync via Chrome Storage
+
 ---
 
 ## Quick Start
@@ -143,7 +154,8 @@ daily-intelligence-chrome-extension/
 │       ├── 003-rss-feed-source-strategy.md
 │       ├── 004-live-rss-fetching-architecture.md
 │       ├── 005-api-key-security-strategy.md
-│       └── 006-modular-content-architecture.md
+│       ├── 006-modular-content-architecture.md
+│       └── 007-appearance-personalization-settings.md
 └── icons/                    # Extension icons
 ```
 
@@ -243,6 +255,35 @@ var RSS_FEED_SOURCES = {
 ```
 
 Note: New domains must be added to `host_permissions` in `manifest.json`.
+
+### Customizing Appearance
+
+Click the **gear icon** (⚙) in the header to open the Appearance Settings modal.
+
+**Preset Themes:**
+Select from 6 pre-configured color schemes for quick theming.
+
+**Custom Colors:**
+Use the color pickers to customize individual elements:
+- Primary Background - main page background
+- Card Background - content cards
+- Primary Accent - buttons, title, highlights
+- Secondary Accent - reflection banner
+- Category Badge - insight/microlearning categories
+- Primary/Secondary Text - content text
+- Date Text - header date display
+
+**Background Image:**
+1. Enter an image URL (must be HTTPS)
+2. Adjust **Overlay Opacity** to control how much the image shows through
+3. Adjust **Blur Amount** for a frosted glass effect
+
+**Card Transparency:**
+Lower the **Card Opacity** to make content cards semi-transparent, revealing the background.
+
+**Save/Reset:**
+- Click **Save Settings** to persist your changes (syncs across devices)
+- Click **Reset to Default** to restore original theme
 
 ### Architecture Decisions
 

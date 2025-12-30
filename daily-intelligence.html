@@ -49,10 +49,7 @@
         .header h1 {
             font-family: var(--font-display);
             font-size: 2.5rem;
-            background: linear-gradient(135deg, var(--accent-teal), var(--accent-cyan));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: var(--accent-teal);
         }
         
         .btn {
@@ -61,7 +58,7 @@
             border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
-            background: linear-gradient(135deg, var(--accent-teal), var(--accent-cyan));
+            background: var(--accent-teal);
             color: white;
             margin: 0.5rem 0.25rem;
         }
@@ -555,14 +552,430 @@
             .header { flex-direction: column; gap: 1rem; align-items: flex-start; }
             .header-reflection { width: 100%; justify-content: space-between; }
         }
+
+        /* Settings Modal */
+        .settings-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .settings-modal.active {
+            display: flex;
+        }
+
+        .settings-modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .settings-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .settings-modal-close {
+            background: none;
+            border: none;
+            color: var(--text-tertiary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.25rem;
+            line-height: 1;
+        }
+
+        .settings-modal-close:hover {
+            color: var(--text-primary);
+        }
+
+        .settings-section {
+            margin-bottom: 2rem;
+        }
+
+        .settings-section-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--accent-teal);
+            margin-bottom: 1rem;
+        }
+
+        .settings-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--bg-tertiary);
+        }
+
+        .settings-row:last-child {
+            border-bottom: none;
+        }
+
+        .settings-label {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .settings-color-input {
+            width: 50px;
+            height: 35px;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            background: transparent;
+            padding: 2px;
+        }
+
+        .settings-color-input::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        .settings-color-input::-webkit-color-swatch {
+            border: none;
+            border-radius: 4px;
+        }
+
+        .settings-text-input {
+            width: 200px;
+            padding: 0.5rem 0.75rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .settings-text-input:focus {
+            outline: none;
+            border-color: var(--accent-teal);
+        }
+
+        .settings-range-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .settings-range {
+            width: 120px;
+            accent-color: var(--accent-teal);
+        }
+
+        .settings-range-value {
+            color: var(--text-tertiary);
+            font-size: 0.85rem;
+            min-width: 40px;
+        }
+
+        .preset-themes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .preset-theme-btn {
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .preset-theme-btn:hover {
+            border-color: var(--accent-teal);
+            color: var(--text-primary);
+        }
+
+        .preset-theme-btn.active {
+            border-color: var(--accent-teal);
+            background: rgba(20, 184, 166, 0.1);
+            color: var(--accent-teal);
+        }
+
+        .settings-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .settings-btn-secondary {
+            padding: 0.6rem 1.2rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .settings-btn-secondary:hover {
+            border-color: var(--accent-teal);
+            color: var(--text-primary);
+        }
+
+        /* Background image overlay */
+        .bg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -2;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        /* Color overlay on top of background image */
+        .bg-color-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
+            background-color: var(--bg-primary);
+            opacity: 0.85;
+            pointer-events: none;
+        }
+
+        /* Card opacity support */
+        .card {
+            background: var(--card-bg, var(--bg-secondary));
+        }
+
+        .quiz-container,
+        .news-item,
+        .executive-summary {
+            background: var(--bg-tertiary-alpha, var(--bg-tertiary));
+        }
+
+        /* Reflection banner with opacity support */
+        .reflection-banner {
+            background: var(--reflection-banner-bg, var(--bg-secondary)) !important;
+        }
+
+        /* Buttons always stay solid */
+        .btn {
+            background: var(--accent-teal) !important;
+            opacity: 1 !important;
+        }
+
+        .btn-secondary,
+        .settings-btn-secondary,
+        .preset-theme-btn,
+        .more-articles-toggle {
+            opacity: 1 !important;
+        }
+
+        /* Reflection trigger button - always solid */
+        .reflection-trigger {
+            background: var(--accent-amber) !important;
+            border-color: var(--accent-amber) !important;
+            color: var(--bg-primary) !important;
+            opacity: 1 !important;
+        }
+
+        .reflection-trigger:hover {
+            background: var(--accent-amber) !important;
+            filter: brightness(1.1);
+        }
+
+        .reflection-trigger.has-response {
+            background: var(--success) !important;
+            border-color: var(--success) !important;
+        }
+
+        /* Header buttons stay solid with visible background */
+        .refresh-btn {
+            background: var(--bg-secondary) !important;
+            opacity: 1 !important;
+        }
+
+        /* Date text styling */
+        #currentDate {
+            color: var(--date-color, var(--text-tertiary));
+            font-weight: 500;
+        }
+
+        /* Modals stay solid for readability */
+        .settings-modal-content,
+        .reflection-modal-content {
+            background: var(--bg-secondary) !important;
+        }
+
+        /* Dynamic color overrides - use CSS variables instead of static rgba */
+        .insight-category {
+            background: var(--category-bg, rgba(20, 184, 166, 0.15)) !important;
+            color: var(--category-color, var(--accent-teal)) !important;
+        }
+
+        .btn:hover {
+            box-shadow: 0 6px 20px var(--accent-teal-40, rgba(20, 184, 166, 0.4)) !important;
+        }
+
+        .refresh-btn:hover {
+            background: var(--accent-teal-10, rgba(20, 184, 166, 0.1)) !important;
+        }
+
+        .card:hover {
+            box-shadow: 0 8px 24px var(--accent-teal-10, rgba(20, 184, 166, 0.1)) !important;
+        }
+
+        .reflection-textarea:focus {
+            box-shadow: 0 0 0 3px var(--accent-teal-10, rgba(20, 184, 166, 0.1)) !important;
+        }
+
+        .article-score-badge {
+            background: var(--accent-teal-15, rgba(20, 184, 166, 0.15)) !important;
+        }
+
+        .preset-theme-btn.active {
+            background: var(--accent-teal-10, rgba(20, 184, 166, 0.1)) !important;
+        }
     </style>
 </head>
 <body>
+    <!-- Background overlay for custom background images -->
+    <div id="bgOverlay" class="bg-overlay"></div>
+    <!-- Color overlay on top of background image -->
+    <div id="bgColorOverlay" class="bg-color-overlay"></div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="settings-modal">
+        <div class="settings-modal-content">
+            <div class="settings-modal-header">
+                <h2 style="font-family: var(--font-display); color: var(--accent-teal);">Appearance Settings</h2>
+                <button id="settingsModalClose" class="settings-modal-close">&times;</button>
+            </div>
+
+            <!-- Preset Themes -->
+            <div class="settings-section">
+                <div class="settings-section-title">Preset Themes</div>
+                <div class="preset-themes" id="presetThemes">
+                    <button class="preset-theme-btn" data-theme="default">Default</button>
+                    <button class="preset-theme-btn" data-theme="midnight">Midnight</button>
+                    <button class="preset-theme-btn" data-theme="ocean">Ocean</button>
+                    <button class="preset-theme-btn" data-theme="forest">Forest</button>
+                    <button class="preset-theme-btn" data-theme="sunset">Sunset</button>
+                    <button class="preset-theme-btn" data-theme="light">Light</button>
+                </div>
+            </div>
+
+            <!-- Color Settings -->
+            <div class="settings-section">
+                <div class="settings-section-title">Colors</div>
+                <div class="settings-row">
+                    <span class="settings-label">Primary Background</span>
+                    <input type="color" id="colorBgPrimary" class="settings-color-input" value="#0f1419">
+                </div>
+                <div class="settings-row">
+                    <span class="settings-label">Card Background</span>
+                    <input type="color" id="colorBgSecondary" class="settings-color-input" value="#1a1f29">
+                </div>
+                <div class="settings-row">
+                    <span class="settings-label">Primary Accent</span>
+                    <input type="color" id="colorAccentTeal" class="settings-color-input" value="#14b8a6">
+                </div>
+                <div class="settings-row">
+                    <span class="settings-label">Secondary Accent</span>
+                    <input type="color" id="colorAccentAmber" class="settings-color-input" value="#f59e0b">
+                </div>
+                <div class="settings-row">
+                    <span class="settings-label">Category Badge</span>
+                    <input type="color" id="colorCategory" class="settings-color-input" value="#14b8a6">
+                </div>
+                <div class="settings-row">
+                    <span class="settings-label">Primary Text</span>
+                    <input type="color" id="colorTextPrimary" class="settings-color-input" value="#f8fafc">
+                </div>
+                <div class="settings-row">
+                    <span class="settings-label">Secondary Text</span>
+                    <input type="color" id="colorTextSecondary" class="settings-color-input" value="#cbd5e1">
+                </div>
+                <div class="settings-row">
+                    <span class="settings-label">Date Text</span>
+                    <input type="color" id="colorDate" class="settings-color-input" value="#f8fafc">
+                </div>
+            </div>
+
+            <!-- Background Image -->
+            <div class="settings-section">
+                <div class="settings-section-title">Background Image</div>
+                <div class="settings-row">
+                    <span class="settings-label">Image URL</span>
+                    <input type="text" id="bgImageUrl" class="settings-text-input" placeholder="https://example.com/image.jpg">
+                </div>
+                <div class="settings-row">
+                    <span class="settings-label">Overlay Opacity</span>
+                    <div class="settings-range-container">
+                        <input type="range" id="bgOverlayOpacity" class="settings-range" min="0" max="100" value="85">
+                        <span id="bgOverlayOpacityValue" class="settings-range-value">85%</span>
+                    </div>
+                </div>
+                <div class="settings-row">
+                    <span class="settings-label">Blur Amount</span>
+                    <div class="settings-range-container">
+                        <input type="range" id="bgBlurAmount" class="settings-range" min="0" max="20" value="0">
+                        <span id="bgBlurAmountValue" class="settings-range-value">0px</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Appearance -->
+            <div class="settings-section">
+                <div class="settings-section-title">Card Appearance</div>
+                <div class="settings-row">
+                    <span class="settings-label">Card Opacity</span>
+                    <div class="settings-range-container">
+                        <input type="range" id="cardOpacity" class="settings-range" min="0" max="100" value="100">
+                        <span id="cardOpacityValue" class="settings-range-value">100%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="settings-actions">
+                <button id="resetSettingsBtn" class="settings-btn-secondary">Reset to Default</button>
+                <button id="saveSettingsBtn" class="btn">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         <header class="header">
             <h1>Daily Intelligence</h1>
             <div class="header-reflection" style="display: flex; align-items: center; gap: 1rem;">
-                <span id="currentDate" style="color: var(--text-tertiary);"></span>
+                <span id="currentDate"></span>
+                <button id="settingsBtn" class="refresh-btn" data-tooltip="Customize appearance">&#9881;</button>
                 <button id="refreshContentBtn" class="refresh-btn" data-tooltip="Refresh all content (clears daily cache)">&#x21bb;</button>
             </div>
         </header>

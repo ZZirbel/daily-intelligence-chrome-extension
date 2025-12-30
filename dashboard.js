@@ -4,6 +4,506 @@
 // Debug mode - set to true for verbose console logging
 var DEBUG = false;
 
+// ============================================
+// APPEARANCE SETTINGS - Chrome Storage Sync
+// ============================================
+
+// Default theme values
+var DEFAULT_THEME = {
+    'bg-primary': '#0f1419',
+    'bg-secondary': '#1a1f29',
+    'bg-tertiary': '#252d3a',
+    'accent-teal': '#14b8a6',
+    'accent-cyan': '#06b6d4',
+    'accent-amber': '#f59e0b',
+    'text-primary': '#f8fafc',
+    'text-secondary': '#cbd5e1',
+    'text-tertiary': '#94a3b8',
+    'border-color': '#334155',
+    'date-color': '#f8fafc',
+    'category-color': '#14b8a6',
+    'bgImageUrl': '',
+    'bgOverlayOpacity': 85,
+    'bgBlurAmount': 0,
+    'cardOpacity': 100
+};
+
+// Preset themes
+var PRESET_THEMES = {
+    'default': {
+        'bg-primary': '#0f1419',
+        'bg-secondary': '#1a1f29',
+        'bg-tertiary': '#252d3a',
+        'accent-teal': '#14b8a6',
+        'accent-cyan': '#06b6d4',
+        'accent-amber': '#f59e0b',
+        'text-primary': '#f8fafc',
+        'text-secondary': '#cbd5e1',
+        'text-tertiary': '#94a3b8',
+        'border-color': '#334155',
+        'date-color': '#f8fafc',
+        'category-color': '#14b8a6'
+    },
+    'midnight': {
+        'bg-primary': '#0a0a0f',
+        'bg-secondary': '#12121a',
+        'bg-tertiary': '#1a1a25',
+        'accent-teal': '#8b5cf6',
+        'accent-cyan': '#a78bfa',
+        'accent-amber': '#c084fc',
+        'text-primary': '#f5f5f7',
+        'text-secondary': '#a1a1aa',
+        'text-tertiary': '#71717a',
+        'border-color': '#27272a',
+        'date-color': '#a78bfa',
+        'category-color': '#c084fc'
+    },
+    'ocean': {
+        'bg-primary': '#0c1929',
+        'bg-secondary': '#132337',
+        'bg-tertiary': '#1a3045',
+        'accent-teal': '#0ea5e9',
+        'accent-cyan': '#38bdf8',
+        'accent-amber': '#22d3ee',
+        'text-primary': '#f0f9ff',
+        'text-secondary': '#bae6fd',
+        'text-tertiary': '#7dd3fc',
+        'border-color': '#1e4976',
+        'date-color': '#38bdf8',
+        'category-color': '#22d3ee'
+    },
+    'forest': {
+        'bg-primary': '#0f1a14',
+        'bg-secondary': '#162920',
+        'bg-tertiary': '#1d362a',
+        'accent-teal': '#22c55e',
+        'accent-cyan': '#4ade80',
+        'accent-amber': '#a3e635',
+        'text-primary': '#f0fdf4',
+        'text-secondary': '#bbf7d0',
+        'text-tertiary': '#86efac',
+        'border-color': '#166534',
+        'date-color': '#4ade80',
+        'category-color': '#a3e635'
+    },
+    'sunset': {
+        'bg-primary': '#1a0f14',
+        'bg-secondary': '#291620',
+        'bg-tertiary': '#361d2a',
+        'accent-teal': '#f43f5e',
+        'accent-cyan': '#fb7185',
+        'accent-amber': '#f97316',
+        'text-primary': '#fff1f2',
+        'text-secondary': '#fecdd3',
+        'text-tertiary': '#fda4af',
+        'border-color': '#9f1239',
+        'date-color': '#fb7185',
+        'category-color': '#f97316'
+    },
+    'light': {
+        'bg-primary': '#f8fafc',
+        'bg-secondary': '#ffffff',
+        'bg-tertiary': '#f1f5f9',
+        'accent-teal': '#0d9488',
+        'accent-cyan': '#0891b2',
+        'accent-amber': '#d97706',
+        'text-primary': '#0f172a',
+        'text-secondary': '#475569',
+        'text-tertiary': '#94a3b8',
+        'border-color': '#e2e8f0',
+        'date-color': '#0f172a',
+        'category-color': '#0d9488'
+    }
+};
+
+// Current appearance settings
+var appearanceSettings = Object.assign({}, DEFAULT_THEME);
+
+// Load appearance settings from chrome.storage.sync
+function loadAppearanceSettings() {
+    return new Promise(function(resolve) {
+        if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
+            chrome.storage.sync.get(['appearanceSettings'], function(result) {
+                if (result.appearanceSettings) {
+                    appearanceSettings = Object.assign({}, DEFAULT_THEME, result.appearanceSettings);
+                    debugLog('Loaded appearance settings from Chrome storage');
+                }
+                applyAppearanceSettings();
+                resolve(appearanceSettings);
+            });
+        } else {
+            // Fallback to localStorage for development
+            try {
+                var saved = localStorage.getItem('appearance_settings');
+                if (saved) {
+                    appearanceSettings = Object.assign({}, DEFAULT_THEME, JSON.parse(saved));
+                    debugLog('Loaded appearance settings from localStorage');
+                }
+            } catch (e) {
+                console.error('Failed to load appearance settings:', e);
+            }
+            applyAppearanceSettings();
+            resolve(appearanceSettings);
+        }
+    });
+}
+
+// Save appearance settings to chrome.storage.sync
+function saveAppearanceSettings() {
+    return new Promise(function(resolve) {
+        if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.sync) {
+            chrome.storage.sync.set({ appearanceSettings: appearanceSettings }, function() {
+                debugLog('Saved appearance settings to Chrome storage');
+                resolve();
+            });
+        } else {
+            // Fallback to localStorage for development
+            try {
+                localStorage.setItem('appearance_settings', JSON.stringify(appearanceSettings));
+                debugLog('Saved appearance settings to localStorage');
+            } catch (e) {
+                console.error('Failed to save appearance settings:', e);
+            }
+            resolve();
+        }
+    });
+}
+
+// Apply appearance settings to the page
+function applyAppearanceSettings() {
+    var root = document.documentElement;
+
+    // Apply color variables
+    var colorVars = ['bg-primary', 'bg-secondary', 'bg-tertiary', 'accent-teal', 'accent-cyan',
+        'accent-amber', 'text-primary', 'text-secondary', 'text-tertiary', 'border-color'];
+
+    colorVars.forEach(function(varName) {
+        if (appearanceSettings[varName]) {
+            root.style.setProperty('--' + varName, appearanceSettings[varName]);
+        }
+    });
+
+    // Apply background image
+    var bgOverlay = document.getElementById('bgOverlay');
+    var bgColorOverlay = document.getElementById('bgColorOverlay');
+
+    if (bgOverlay && bgColorOverlay) {
+        if (appearanceSettings.bgImageUrl) {
+            // Show background image
+            bgOverlay.style.backgroundImage = 'url(' + appearanceSettings.bgImageUrl + ')';
+            bgOverlay.style.filter = 'blur(' + (appearanceSettings.bgBlurAmount || 0) + 'px)';
+
+            // Show color overlay with opacity
+            var overlayOpacity = (appearanceSettings.bgOverlayOpacity || 85) / 100;
+            bgColorOverlay.style.opacity = overlayOpacity;
+            bgColorOverlay.style.display = 'block';
+
+            // Make body background transparent so overlays show through
+            document.body.style.background = 'transparent';
+        } else {
+            // No background image - hide overlays and use solid bg
+            bgOverlay.style.backgroundImage = 'none';
+            bgColorOverlay.style.display = 'none';
+            document.body.style.background = '';
+        }
+    }
+
+    // Apply card opacity
+    var cardOpacity = (appearanceSettings.cardOpacity !== undefined ? appearanceSettings.cardOpacity : 100) / 100;
+    var bgSecondary = appearanceSettings['bg-secondary'] || '#1a1f29';
+    var rgb = hexToRgb(bgSecondary);
+    root.style.setProperty('--card-bg', 'rgba(' + rgb.r + ', ' + rgb.g + ', ' + rgb.b + ', ' + cardOpacity + ')');
+
+    // Also apply to tertiary (used by quiz containers, news items, etc.)
+    var bgTertiary = appearanceSettings['bg-tertiary'] || '#252d3a';
+    var rgbTertiary = hexToRgb(bgTertiary);
+    root.style.setProperty('--bg-tertiary-alpha', 'rgba(' + rgbTertiary.r + ', ' + rgbTertiary.g + ', ' + rgbTertiary.b + ', ' + cardOpacity + ')');
+
+    // Apply reflection banner with opacity - use card bg with amber tint
+    var accentAmber = appearanceSettings['accent-amber'] || '#f59e0b';
+    var rgbAmber = hexToRgb(accentAmber);
+    // Blend card background with amber tint for reflection banner
+    root.style.setProperty('--reflection-banner-bg',
+        'linear-gradient(135deg, ' +
+        'rgba(' + Math.round((rgb.r + rgbAmber.r) / 2) + ', ' + Math.round((rgb.g + rgbAmber.g) / 2) + ', ' + Math.round((rgb.b + rgbAmber.b) / 2) + ', ' + cardOpacity + ') 0%, ' +
+        'rgba(' + rgb.r + ', ' + rgb.g + ', ' + rgb.b + ', ' + cardOpacity + ') 100%)');
+
+    // Apply date color
+    var dateColor = appearanceSettings['date-color'] || '#f8fafc';
+    root.style.setProperty('--date-color', dateColor);
+
+    // Generate accent color alpha variants for hover effects, badges, etc.
+    var accentTeal = appearanceSettings['accent-teal'] || '#14b8a6';
+    var rgbTeal = hexToRgb(accentTeal);
+    root.style.setProperty('--accent-teal-10', 'rgba(' + rgbTeal.r + ', ' + rgbTeal.g + ', ' + rgbTeal.b + ', 0.1)');
+    root.style.setProperty('--accent-teal-15', 'rgba(' + rgbTeal.r + ', ' + rgbTeal.g + ', ' + rgbTeal.b + ', 0.15)');
+    root.style.setProperty('--accent-teal-40', 'rgba(' + rgbTeal.r + ', ' + rgbTeal.g + ', ' + rgbTeal.b + ', 0.4)');
+
+    // Generate amber alpha variants
+    root.style.setProperty('--accent-amber-15', 'rgba(' + rgbAmber.r + ', ' + rgbAmber.g + ', ' + rgbAmber.b + ', 0.15)');
+    root.style.setProperty('--accent-amber-25', 'rgba(' + rgbAmber.r + ', ' + rgbAmber.g + ', ' + rgbAmber.b + ', 0.25)');
+
+    // Generate category badge color variants
+    var categoryColor = appearanceSettings['category-color'] || '#14b8a6';
+    var rgbCategory = hexToRgb(categoryColor);
+    root.style.setProperty('--category-color', categoryColor);
+    root.style.setProperty('--category-bg', 'rgba(' + rgbCategory.r + ', ' + rgbCategory.g + ', ' + rgbCategory.b + ', 0.15)');
+
+    debugLog('Applied appearance settings');
+}
+
+// Helper function to convert hex to RGB
+function hexToRgb(hex) {
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : { r: 15, g: 20, b: 25 };
+}
+
+// Update settings modal with current values
+function updateSettingsModal() {
+    // Update color inputs
+    var colorMapping = {
+        'colorBgPrimary': 'bg-primary',
+        'colorBgSecondary': 'bg-secondary',
+        'colorAccentTeal': 'accent-teal',
+        'colorAccentAmber': 'accent-amber',
+        'colorCategory': 'category-color',
+        'colorTextPrimary': 'text-primary',
+        'colorTextSecondary': 'text-secondary',
+        'colorDate': 'date-color'
+    };
+
+    Object.keys(colorMapping).forEach(function(inputId) {
+        var input = document.getElementById(inputId);
+        if (input) {
+            input.value = appearanceSettings[colorMapping[inputId]] || DEFAULT_THEME[colorMapping[inputId]];
+        }
+    });
+
+    // Update background image inputs
+    var bgUrlInput = document.getElementById('bgImageUrl');
+    if (bgUrlInput) {
+        bgUrlInput.value = appearanceSettings.bgImageUrl || '';
+    }
+
+    var opacityInput = document.getElementById('bgOverlayOpacity');
+    var opacityValue = document.getElementById('bgOverlayOpacityValue');
+    if (opacityInput) {
+        opacityInput.value = appearanceSettings.bgOverlayOpacity || 85;
+        if (opacityValue) {
+            opacityValue.textContent = (appearanceSettings.bgOverlayOpacity || 85) + '%';
+        }
+    }
+
+    var blurInput = document.getElementById('bgBlurAmount');
+    var blurValue = document.getElementById('bgBlurAmountValue');
+    if (blurInput) {
+        blurInput.value = appearanceSettings.bgBlurAmount || 0;
+        if (blurValue) {
+            blurValue.textContent = (appearanceSettings.bgBlurAmount || 0) + 'px';
+        }
+    }
+
+    // Update card opacity input
+    var cardOpacityInput = document.getElementById('cardOpacity');
+    var cardOpacityValue = document.getElementById('cardOpacityValue');
+    if (cardOpacityInput) {
+        cardOpacityInput.value = appearanceSettings.cardOpacity !== undefined ? appearanceSettings.cardOpacity : 100;
+        if (cardOpacityValue) {
+            cardOpacityValue.textContent = (appearanceSettings.cardOpacity !== undefined ? appearanceSettings.cardOpacity : 100) + '%';
+        }
+    }
+
+    // Update active preset theme button
+    updateActivePresetButton();
+}
+
+// Update which preset button is active
+function updateActivePresetButton() {
+    var presetBtns = document.querySelectorAll('.preset-theme-btn');
+    presetBtns.forEach(function(btn) {
+        var themeName = btn.getAttribute('data-theme');
+        var preset = PRESET_THEMES[themeName];
+        if (preset) {
+            var isMatch = Object.keys(preset).every(function(key) {
+                return appearanceSettings[key] === preset[key];
+            });
+            btn.classList.toggle('active', isMatch);
+        }
+    });
+}
+
+// Apply a preset theme
+function applyPresetTheme(themeName) {
+    var preset = PRESET_THEMES[themeName];
+    if (preset) {
+        Object.keys(preset).forEach(function(key) {
+            appearanceSettings[key] = preset[key];
+        });
+        applyAppearanceSettings();
+        updateSettingsModal();
+    }
+}
+
+// Open settings modal
+function openSettingsModal() {
+    updateSettingsModal();
+    var modal = document.getElementById('settingsModal');
+    if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+// Close settings modal
+function closeSettingsModal() {
+    var modal = document.getElementById('settingsModal');
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+}
+
+// Reset settings to default
+function resetAppearanceSettings() {
+    appearanceSettings = Object.assign({}, DEFAULT_THEME);
+    applyAppearanceSettings();
+    updateSettingsModal();
+}
+
+// Setup settings event listeners
+function setupSettingsEventListeners() {
+    // Settings button
+    var settingsBtn = document.getElementById('settingsBtn');
+    if (settingsBtn) {
+        settingsBtn.addEventListener('click', openSettingsModal);
+    }
+
+    // Close button
+    var closeBtn = document.getElementById('settingsModalClose');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeSettingsModal);
+    }
+
+    // Modal backdrop click
+    var modal = document.getElementById('settingsModal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeSettingsModal();
+            }
+        });
+    }
+
+    // Escape key to close
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeSettingsModal();
+        }
+    });
+
+    // Color inputs - live preview
+    var colorMapping = {
+        'colorBgPrimary': 'bg-primary',
+        'colorBgSecondary': 'bg-secondary',
+        'colorAccentTeal': 'accent-teal',
+        'colorAccentAmber': 'accent-amber',
+        'colorCategory': 'category-color',
+        'colorTextPrimary': 'text-primary',
+        'colorTextSecondary': 'text-secondary',
+        'colorDate': 'date-color'
+    };
+
+    Object.keys(colorMapping).forEach(function(inputId) {
+        var input = document.getElementById(inputId);
+        if (input) {
+            input.addEventListener('input', function() {
+                appearanceSettings[colorMapping[inputId]] = input.value;
+                applyAppearanceSettings();
+                updateActivePresetButton();
+            });
+        }
+    });
+
+    // Background image URL
+    var bgUrlInput = document.getElementById('bgImageUrl');
+    if (bgUrlInput) {
+        bgUrlInput.addEventListener('input', function() {
+            appearanceSettings.bgImageUrl = bgUrlInput.value;
+            applyAppearanceSettings();
+        });
+    }
+
+    // Overlay opacity
+    var opacityInput = document.getElementById('bgOverlayOpacity');
+    var opacityValue = document.getElementById('bgOverlayOpacityValue');
+    if (opacityInput) {
+        opacityInput.addEventListener('input', function() {
+            appearanceSettings.bgOverlayOpacity = parseInt(opacityInput.value, 10);
+            if (opacityValue) {
+                opacityValue.textContent = opacityInput.value + '%';
+            }
+            applyAppearanceSettings();
+        });
+    }
+
+    // Blur amount
+    var blurInput = document.getElementById('bgBlurAmount');
+    var blurValue = document.getElementById('bgBlurAmountValue');
+    if (blurInput) {
+        blurInput.addEventListener('input', function() {
+            appearanceSettings.bgBlurAmount = parseInt(blurInput.value, 10);
+            if (blurValue) {
+                blurValue.textContent = blurInput.value + 'px';
+            }
+            applyAppearanceSettings();
+        });
+    }
+
+    // Card opacity
+    var cardOpacityInput = document.getElementById('cardOpacity');
+    var cardOpacityValue = document.getElementById('cardOpacityValue');
+    if (cardOpacityInput) {
+        cardOpacityInput.addEventListener('input', function() {
+            appearanceSettings.cardOpacity = parseInt(cardOpacityInput.value, 10);
+            if (cardOpacityValue) {
+                cardOpacityValue.textContent = cardOpacityInput.value + '%';
+            }
+            applyAppearanceSettings();
+        });
+    }
+
+    // Preset theme buttons
+    var presetBtns = document.querySelectorAll('.preset-theme-btn');
+    presetBtns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var themeName = btn.getAttribute('data-theme');
+            applyPresetTheme(themeName);
+        });
+    });
+
+    // Reset button
+    var resetBtn = document.getElementById('resetSettingsBtn');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', function() {
+            resetAppearanceSettings();
+        });
+    }
+
+    // Save button
+    var saveBtn = document.getElementById('saveSettingsBtn');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', function() {
+            saveAppearanceSettings().then(function() {
+                closeSettingsModal();
+            });
+        });
+    }
+}
+
 function debugLog(message, data) {
     if (DEBUG) {
         if (data !== undefined) {
@@ -149,6 +649,11 @@ let summaryData = null;
 
 // Initialize
 function init() {
+    // Load appearance settings first (before other content loads)
+    loadAppearanceSettings().then(function() {
+        setupSettingsEventListeners();
+    });
+
     loadState();
     var cacheIsValid = loadDailyCache();
 
