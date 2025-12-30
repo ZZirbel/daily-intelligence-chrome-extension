@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Daily Intelligence",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Your personal intelligence hub for leadership development, continuous learning, and staying informed.",
   "author": "Zan Zirbel",
 
@@ -15,5 +15,27 @@
     "128": "icons/icon128.png"
   },
 
-  "permissions": []
+  "permissions": [
+    "storage"
+  ],
+
+  "host_permissions": [
+    "https://api.groq.com/*",
+    "https://*.techcrunch.com/*",
+    "https://*.technologyreview.com/*",
+    "https://*.theverge.com/*",
+    "https://*.mit.edu/*",
+    "https://*.google.com/*",
+    "https://openai.com/*",
+    "https://*.dowjones.io/*",
+    "https://*.economist.com/*",
+    "https://*.wharton.upenn.edu/*",
+    "https://qz.com/*",
+    "https://*.fastcompany.com/*",
+    "https://*.seths.blog/*",
+    "https://*.lollydaskal.com/*",
+    "https://*.leadershipfreak.blog/*",
+    "https://*.michaelhyatt.com/*",
+    "https://*.simonsinek.com/*"
+  ]
 }

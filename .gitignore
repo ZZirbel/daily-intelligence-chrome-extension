@@ -12,6 +12,7 @@
 # Credentials and secrets
 credentials.json
 secrets.json
+config.js
 *.pem
 *.key
 *.p12

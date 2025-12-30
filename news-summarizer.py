@@ -14,6 +14,7 @@ import os
 import json
 import logging
 import re
+import time
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
 from urllib.parse import urlparse
@@ -130,9 +131,21 @@ class NewsSummarizer:
         self.model = "llama-3.3-70b-versatile"
 
     def fetch_feed(self, url: str, max_entries: int = 10) -> List[Dict]:
-        """Fetch and parse an RSS feed"""
+        """Fetch and parse an RSS feed with cache-busting"""
         try:
-            feed = feedparser.parse(url)
+            # Force fresh fetch by disabling etag/modified tracking
+            # and adding cache-control headers
+            cache_buster = f"?_cb={int(time.time())}" if "?" not in url else f"&_cb={int(time.time())}"
+            fetch_url = url + cache_buster
+
+            feed = feedparser.parse(
+                fetch_url,
+                request_headers={
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
+            )
             articles = []
 
             for entry in feed.entries[:max_entries]:
